@@ -1,40 +1,55 @@
-# Página de vendas — Bot do Telegram
+# Bot 24h — página de vendas completa
 
-Página de vendas de arquivo único (`index.html`), em português, com oferta de **pagamento único / acesso vitalício**.
-Sem dependências, sem build: é só abrir o arquivo no navegador ou subir em qualquer hospedagem.
+Página de vendas pronta para publicar, em português, com oferta de **pagamento único / acesso vitalício**.
+HTML e CSS puros: sem build, sem framework, sem dependência. É só subir os arquivos.
 
-## Como publicar
+## Arquivos
 
-| Onde | Como |
+| Arquivo | O que é |
 |---|---|
-| **Netlify Drop** | Arraste a pasta em [app.netlify.com/drop](https://app.netlify.com/drop) — no ar em segundos, grátis |
-| **Vercel** | `vercel` na pasta, ou importe o repositório |
-| **GitHub Pages** | Settings → Pages → branch → `/root` |
-| **Hospedagem comum** | Envie o `index.html` para a pasta `public_html` via FTP |
+| `index.html` | A página de vendas (copy completa, nada em branco) |
+| `obrigado.html` | Página pós-compra com os próximos passos — aponte o checkout para ela |
+| `termos.html` | Termos de uso + política de reembolso |
+| `privacidade.html` | Política de privacidade (LGPD) |
+| `estilo-paginas.css` | Estilo compartilhado das três páginas internas |
+| `capa.png` | Imagem 1200×630 que aparece ao compartilhar o link |
 
-## O que editar (na ordem)
+## Antes de publicar — o mínimo obrigatório
 
-Abra o `index.html` num editor e use **Ctrl+F** para achar cada item. Tudo que estiver entre
-colchetes `[ASSIM]` é placeholder e precisa ser trocado.
+**1. Link do checkout.** No fim do `index.html`, preencha:
 
-1. **`[NOME DO BOT]`** → nome do seu bot (aparece em ~8 lugares, use "Substituir todos").
-2. **Título e descrição** (linhas 6–17) → o que aparece no Google e no preview do link no WhatsApp/Telegram.
-3. **Headline do hero** → a promessa principal. Fórmula que funciona: *[resultado] em [tempo] sem [dor]*.
-4. **Conversa do celular** → escreva um diálogo real mostrando o bot resolvendo o problema. É o trecho que mais convence.
-5. **Números da faixa** → use só métricas que você consegue comprovar.
-6. **3 dores / 6 benefícios** → fale de resultado ("responde na hora"), não de recurso técnico ("webhook assíncrono").
-7. **Depoimentos** → precisam ser verdadeiros. Print de conversa do Telegram converte mais que texto digitado.
-8. **Preço** → `[497]` (valor riscado), `[197]` (valor real), `[19,90]` (parcela). Aparece também na barra fixa do celular e no CTA final.
-9. **Link do checkout** → no fim do arquivo, na variável `LINK_CHECKOUT`. Preencha uma vez e **todos** os botões de compra passam a apontar para lá:
-   ```js
-   var LINK_CHECKOUT = 'https://pay.kiwify.com.br/seu-produto';
-   ```
-10. **Rodapé** → nome da empresa, CNPJ, links de termos/privacidade e seu usuário do Telegram.
-11. **`capa.jpg`** → coloque uma imagem 1200×630 na pasta para o preview do link ficar bonito ao compartilhar.
+```js
+var LINK_CHECKOUT = 'https://pay.kiwify.com.br/seu-produto';
+```
 
-## Trocar as cores
+Todos os botões de compra passam a apontar para lá. Enquanto estiver vazio, eles só rolam até a seção de preço.
 
-Tudo sai das variáveis no topo do `<style>`:
+**2. Dados da empresa.** Um localizar/substituir em todos os arquivos:
+
+| Trocar | Por |
+|---|---|
+| `SUA EMPRESA LTDA` | sua razão social |
+| `00.000.000/0001-00` | seu CNPJ |
+| `@seuusuario` e `t.me/seuusuario` | seu usuário do Telegram |
+| `seudominio.com.br` | seu domínio (e-mails e URLs) |
+| `[cidade/UF]` (termos.html) | sua cidade |
+| `[nome do responsável]` (privacidade.html) | quem responde por dados |
+
+**3. Depoimentos.** Os três da seção "Quem colocou pra rodar" são **exemplos de formato** — está avisado
+num comentário no código. Troque pelos depoimentos reais dos seus clientes antes de anunciar. Print de conversa
+do Telegram converte mais que texto digitado, e depoimento inventado é propaganda enganosa (CDC, art. 37).
+
+**4. Preço.** Se o seu não for R$ 197, busque por `197`, `497` e `19,90` no `index.html` — aparecem na caixa de
+preço, na barra fixa do celular, no CTA final e no texto da garantia.
+
+## Trocar o nome do produto
+
+"Bot 24h" aparece nos 4 arquivos HTML e na `capa.png`. Um substituir-todos resolve o texto;
+a imagem de capa você refaz em qualquer editor no tamanho 1200×630.
+
+## Ajustar as cores
+
+Tudo sai de três variáveis no topo do `<style>` do `index.html` (e repetidas no `estilo-paginas.css`):
 
 ```css
 --azul:#2aabee;   /* cor da marca (padrão: azul do Telegram) */
@@ -42,17 +57,31 @@ Tudo sai das variáveis no topo do `<style>`:
 --bg:#0a141d;     /* fundo */
 ```
 
+## Publicar
+
+| Onde | Como |
+|---|---|
+| **Netlify Drop** | Arraste a pasta em [app.netlify.com/drop](https://app.netlify.com/drop) — no ar em segundos, grátis |
+| **Vercel** | `vercel` dentro da pasta, ou importe o repositório |
+| **GitHub Pages** | Settings → Pages → branch → `/root` |
+| **Hospedagem comum** | Suba os arquivos para a pasta `public_html` via FTP |
+
+Depois de publicar, troque `https://seudominio.com.br/` nas tags `og:url` e `canonical` do `index.html`
+pelo endereço real — é o que faz o preview do link aparecer certo no WhatsApp e no Telegram.
+
 ## Estrutura da página
 
-Hero com preview do bot → prova em números → 3 dores → 6 benefícios → 3 passos de instalação →
-o que está incluído → depoimentos → **preço + garantia de 7 dias** → FAQ → CTA final → rodapé.
-No celular, uma barra fixa com o botão de compra acompanha a rolagem.
+Hero com demonstração do bot → faixa de números → 3 dores → comparativo antes/depois → 6 recursos →
+3 passos de instalação → o que está incluído → depoimentos → **preço + garantia de 7 dias** → sobre →
+8 perguntas frequentes → CTA final → rodapé. No celular, uma barra fixa com o botão de compra acompanha a rolagem.
 
-## Antes de anunciar
+## Checklist final
 
-- [ ] Nenhum `[ ]` sobrou na página (`grep -o '\[[^]]*\]' index.html`)
-- [ ] `LINK_CHECKOUT` preenchido e testado numa compra de teste
-- [ ] Abriu no celular e no computador
-- [ ] Depoimentos e números são reais (Código de Defesa do Consumidor, art. 37: propaganda enganosa dá multa)
-- [ ] Política de reembolso do rodapé bate com a garantia de 7 dias anunciada
-- [ ] Pixel do Facebook / Google Analytics colado antes do `</head>`, se for anunciar
+- [ ] `LINK_CHECKOUT` preenchido e testado com uma compra de teste
+- [ ] Checkout configurado para redirecionar à `obrigado.html` após a aprovação
+- [ ] Dados da empresa trocados nos 4 arquivos (`grep -rn "SUA EMPRESA\|seuusuario\|seudominio" .`)
+- [ ] Depoimentos reais no lugar dos exemplos
+- [ ] Aberto no celular e no computador
+- [ ] `og:url` e `canonical` com o domínio real; link testado no WhatsApp para ver a capa
+- [ ] Pixel do Meta / Google Analytics colados no bloco reservado antes do `</head>`
+- [ ] Prazo de garantia da página igual ao configurado na plataforma de pagamento

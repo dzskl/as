@@ -1,0 +1,38 @@
+/* Estilo compartilhado pelas páginas internas (obrigado, termos, privacidade).
+   As cores seguem as mesmas variáveis do index.html. */
+:root{
+  --azul:#2aabee;--azul-2:#1c8fd0;--verde:#22c55e;
+  --bg:#0a141d;--card:#12212e;--linha:rgba(255,255,255,.09);
+  --txt:#eaf2f8;--txt-2:#93a6b5;
+  --fonte:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--fonte);background:var(--bg);color:var(--txt);line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:var(--azul)}
+.wrap{max-width:780px;margin:0 auto;padding:0 20px}
+header{border-bottom:1px solid var(--linha);background:rgba(10,20,29,.9)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:68px;max-width:780px;margin:0 auto;padding:0 20px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--txt);text-decoration:none}
+.logo-icone{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--azul),var(--azul-2));display:grid;place-items:center}
+.voltar{font-size:.9rem;color:var(--txt-2);text-decoration:none}
+.voltar:hover{color:var(--txt)}
+main{padding:56px 0 80px}
+h1{font-size:clamp(1.7rem,4vw,2.4rem);font-weight:900;letter-spacing:-.02em;line-height:1.2;margin-bottom:10px}
+h2{font-size:1.15rem;font-weight:700;margin:36px 0 10px;letter-spacing:-.01em}
+p,li{color:var(--txt-2);font-size:.98rem}
+p+p{margin-top:12px}
+ul,ol{margin:12px 0 12px 22px}
+li{margin-bottom:7px}
+strong{color:var(--txt)}
+.data{font-size:.85rem;color:var(--txt-2);margin-bottom:8px}
+.aviso-edicao{
+  background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.35);border-radius:12px;
+  padding:16px 18px;margin:24px 0;font-size:.9rem;color:#fbbf24;
+}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:16px 32px;
+  border-radius:999px;font-weight:700;text-decoration:none;
+  background:linear-gradient(135deg,var(--verde),#16a34a);color:#052e13;
+  box-shadow:0 12px 30px -10px rgba(34,197,94,.6);
+}
+footer{border-top:1px solid var(--linha);padding:30px 0;font-size:.84rem;color:var(--txt-2)}
