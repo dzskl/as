@@ -13,6 +13,7 @@ HTML e CSS puros: sem build, sem framework, sem dependência. É só subir os ar
 | `privacidade.html` | Política de privacidade (LGPD) |
 | `estilo-paginas.css` | Estilo compartilhado das três páginas internas |
 | `capa.png` | Imagem 1200×630 que aparece ao compartilhar o link |
+| `vercel.json` | Configuração de deploy (URLs limpas, cache e headers) |
 
 ## Antes de publicar — o mínimo obrigatório
 
@@ -57,12 +58,35 @@ Tudo sai de três variáveis no topo do `<style>` do `index.html` (e repetidas n
 --bg:#0a141d;     /* fundo */
 ```
 
-## Publicar
+## Publicar na Vercel
+
+O repositório já tem o `vercel.json` configurado (URLs limpas, cache dos arquivos estáticos e headers de
+segurança). Não há build: a Vercel serve os arquivos direto.
+
+**Pelo painel (3 cliques, recomendado):**
+
+1. Acesse [vercel.com/new](https://vercel.com/new) e conecte sua conta do GitHub.
+2. Escolha o repositório `dzskl/as` → **Import**.
+3. Em *Framework Preset* deixe **Other**, não preencha build nem output → **Deploy**.
+
+A Vercel publica a branch padrão do repositório — hoje é a `claude/telegram-bot-sales-page-cghi64`.
+Em ~30 segundos você recebe uma URL `*.vercel.app`, e cada `git push` novo redeploya sozinho.
+Para usar domínio próprio: *Project → Settings → Domains*.
+
+**Pelo terminal, sem GitHub:**
+
+```bash
+npx vercel          # pré-visualização
+npx vercel --prod   # produção
+```
+
+Rode dentro da pasta do projeto; o `npx` pede login na primeira vez.
+
+### Outras hospedagens
 
 | Onde | Como |
 |---|---|
-| **Netlify Drop** | Arraste a pasta em [app.netlify.com/drop](https://app.netlify.com/drop) — no ar em segundos, grátis |
-| **Vercel** | `vercel` dentro da pasta, ou importe o repositório |
+| **Netlify Drop** | Arraste a pasta em [app.netlify.com/drop](https://app.netlify.com/drop) — no ar em segundos |
 | **GitHub Pages** | Settings → Pages → branch → `/root` |
 | **Hospedagem comum** | Suba os arquivos para a pasta `public_html` via FTP |
 
