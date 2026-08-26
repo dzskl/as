@@ -80,6 +80,14 @@ export default async function handler(req, res) {
       pedido.status = cobranca.status;
       await salvarPedido(pedido);
 
+      /* Sem o código copia e cola não há como pagar: melhor recusar aqui do
+         que mostrar uma tela de Pix vazia para o cliente. */
+      if (!cobranca.pixTexto) {
+        console.error('[criar-pagamento] gateway não devolveu o código Pix', pedido.id);
+        return erro(res, 502, 'O Pix foi criado mas o código não veio. Tente novamente ou use outra forma de pagamento.',
+          CONFIG.diagnostico ? { diagnostico: 'resposta do gateway: ' + JSON.stringify(cobranca.bruto).slice(0, 1200) } : {});
+      }
+
       return json(res, 201, {
         ok: true,
         pedidoId: pedido.id,

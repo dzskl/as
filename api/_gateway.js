@@ -189,6 +189,47 @@ function qrFalso(pedidoId) {
   return { texto, imagem: 'data:image/svg+xml;base64,' + Buffer.from(svg).toString('base64') };
 }
 
+/* -------------------------------------------------- leitura da resposta Pix
+
+   Em vez de depender do nome exato dos campos (que variam de gateway para
+   gateway e não estão documentados), procuramos pelo CONTEÚDO em qualquer
+   lugar da resposta:
+
+   - o código Pix copia e cola é um BR Code EMV e SEMPRE começa com "000201";
+   - a imagem do QR vem como data URI, base64 de PNG ou URL de imagem.
+
+   Assim a leitura funciona independentemente de a resposta ser {pix:{...}},
+   {data:{qr_code:...}} ou qualquer outro aninhamento. */
+
+function percorrer(valor, visitar, profundidade = 0) {
+  if (profundidade > 6 || valor == null) return;
+  if (typeof valor === 'string') return visitar(valor);
+  if (Array.isArray(valor)) return valor.forEach(v => percorrer(v, visitar, profundidade + 1));
+  if (typeof valor === 'object') Object.values(valor).forEach(v => percorrer(v, visitar, profundidade + 1));
+}
+
+export function acharPixTexto(resposta) {
+  let achado = '';
+  percorrer(resposta, (texto) => {
+    /* BR Code começa com "000201" (Payload Format Indicator) e é longo. */
+    if (!achado && texto.length > 50 && /^000201/.test(texto.trim())) achado = texto.trim();
+  });
+  return achado;
+}
+
+export function acharPixImagem(resposta) {
+  let achado = '';
+  percorrer(resposta, (texto) => {
+    if (achado) return;
+    const t = texto.trim();
+    if (t.startsWith('data:image/')) achado = t;
+    else if (/^iVBORw0KGgo/.test(t)) achado = 'data:image/png;base64,' + t;      // PNG em base64 puro
+    else if (/^PHN2Zy/.test(t)) achado = 'data:image/svg+xml;base64,' + t;        // SVG em base64
+    else if (/^https?:\/\/\S+\.(png|jpe?g|svg)(\?|$)/i.test(t)) achado = t;
+  });
+  return achado;
+}
+
 /* ------------------------------------------------------------------ público */
 
 export async function criarPagamentoPix({ pedido, produto, cliente }) {
@@ -205,13 +246,24 @@ export async function criarPagamentoPix({ pedido, produto, cliente }) {
 
   const caminho = env('FREEPAY_CAMINHO_TRANSACAO', '/payment-transaction/create');
   const r = await chamarApi(caminho, montarCorpoPix({ pedido, produto, cliente }));
-  const pix = r.pix || r.qr_code || r.charge?.pix || {};
+  const pix = r.pix || r.qr_code || r.charge?.pix || r.data?.pix || {};
+
+  /* Primeiro os nomes conhecidos; se nada bater, procura pelo conteúdo. */
+  const texto = pix.qr_code ?? pix.copy_paste ?? pix.emv ?? r.qr_code_text ?? acharPixTexto(r) ?? '';
+  const imagem = pix.qr_code_image ?? pix.qr_code_base64 ?? r.qr_code_image ?? acharPixImagem(r) ?? '';
+
+  if (!texto) {
+    console.error('[gateway] Pix criado mas sem código copia e cola na resposta:',
+                  JSON.stringify(r).slice(0, 1500));
+  }
+
   return {
-    idGateway: String(r.id ?? r.transaction_id ?? r.reference_id ?? ''),
-    status: traduzirStatus(r.status),
-    pixTexto: pix.qr_code ?? pix.copy_paste ?? pix.emv ?? r.qr_code_text ?? '',
-    pixImagem: pix.qr_code_image ?? pix.qr_code_base64 ?? r.qr_code_image ?? '',
-    expiraEm: pix.expires_at ?? r.expires_at ?? null
+    idGateway: String(r.id ?? r.transaction_id ?? r.transactionId ?? r.reference_id ?? r.data?.id ?? ''),
+    status: traduzirStatus(r.status ?? r.data?.status),
+    pixTexto: texto,
+    pixImagem: imagem,
+    expiraEm: pix.expires_at ?? r.expires_at ?? r.expiresAt ?? null,
+    bruto: CONFIG.diagnostico ? r : undefined
   };
 }
 

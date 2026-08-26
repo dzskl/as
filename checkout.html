@@ -255,7 +255,10 @@ footer{border-top:1px solid var(--linha);padding:26px 20px;text-align:center;fon
   <!-- ============ TELA DO PIX (aparece depois de gerar) ============ -->
   <div class="bloco pix" id="etapa-pix" hidden style="max-width:520px;margin:0 auto">
     <h2 style="justify-content:center">Pague com Pix para liberar o acesso</h2>
-    <img class="qr" id="pix-qr" alt="QR Code do Pix" width="230" height="230">
+    <img class="qr" id="pix-qr" alt="QR Code do Pix" width="230" height="230" hidden>
+    <p id="pix-sem-qr" class="ajuda" hidden style="margin-bottom:18px">
+      Copie o código abaixo e cole no seu app do banco, em <strong>Pix &gt; Pix Copia e Cola</strong>.
+    </p>
     <p class="ajuda">Abra o app do seu banco, escolha <strong>Pix &gt; Ler QR Code</strong> e aponte para a imagem.
     Ou use o código copia e cola:</p>
     <div class="copia">
@@ -412,8 +415,12 @@ $('#btn-pix').addEventListener('click', async () => {
     if (!d.ok) throw new Error(mensagemDe(d, 'Não foi possível gerar o Pix'));
 
     pedidoAtual = d.pedidoId;
-    $('#pix-qr').src = d.pix.imagem || '';
-    $('#pix-qr').hidden = !d.pix.imagem;
+    /* Alguns gateways devolvem só o código copia e cola, sem imagem. Nesse
+       caso escondemos o quadro do QR em vez de deixar um retângulo branco. */
+    const temImagem = !!d.pix.imagem;
+    $('#pix-qr').src = temImagem ? d.pix.imagem : '';
+    $('#pix-qr').hidden = !temImagem;
+    $('#pix-sem-qr').hidden = temImagem;
     $('#pix-texto').value = d.pix.texto || '';
     $('#etapa-dados').closest('.colunas').hidden = true;
     $('#etapa-pix').hidden = false;
