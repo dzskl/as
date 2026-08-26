@@ -115,8 +115,25 @@ function traduzirStatus(bruto) {
   return STATUS.PENDENTE;
 }
 
-/* Corpo do POST — os nomes dos campos vêm da documentação do gateway. */
-function montarCorpoPix({ pedido, produto, cliente }) {
+/* A API da FreePay é .NET e espera customer.document como OBJETO
+   (DocumentRequest), não como string — foi o que a validação devolveu:
+   "The JSON value could not be converted to ... DocumentRequest".
+   O nome do tipo ("cpf"/"CPF") é ajustável por variável de ambiente caso a
+   API espere outro formato. */
+function montarCliente(cliente) {
+  return {
+    name: cliente.nome,
+    email: cliente.email,
+    phone: cliente.telefone,
+    document: {
+      number: cliente.cpf,
+      type: env('FREEPAY_DOC_TIPO', 'cpf')
+    }
+  };
+}
+
+/* Corpo do POST — nomes dos campos ajustados conforme a validação da API. */
+export function montarCorpoPix({ pedido, produto, cliente }) {
   return {
     amount: produto.valorCentavos,
     payment_method: 'pix',
@@ -124,16 +141,11 @@ function montarCorpoPix({ pedido, produto, cliente }) {
     postback_url: `${CONFIG.urlSite}/api/webhook`,
     pix_expires_in: 3600,
     items: [{ title: produto.nome, unit_price: produto.valorCentavos, quantity: 1 }],
-    customer: {
-      name: cliente.nome,
-      email: cliente.email,
-      document: cliente.cpf,
-      phone: cliente.telefone
-    }
+    customer: montarCliente(cliente)
   };
 }
 
-function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, parcelas }) {
+export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, parcelas }) {
   return {
     amount: produto.valorCentavos,
     payment_method: 'credit_card',
@@ -142,12 +154,7 @@ function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, parcelas }) 
     reference_id: pedido.id,
     postback_url: `${CONFIG.urlSite}/api/webhook`,
     items: [{ title: produto.nome, unit_price: produto.valorCentavos, quantity: 1 }],
-    customer: {
-      name: cliente.nome,
-      email: cliente.email,
-      document: cliente.cpf,
-      phone: cliente.telefone
-    }
+    customer: montarCliente(cliente)
   };
 }
 

@@ -175,6 +175,30 @@ await teste('cartão sem token é recusado', async () => {
   });
 }
 
+/* --- Formato do corpo enviado à FreePay --- */
+{
+  const { montarCorpoPix } = await import('../api/_gateway.js');
+  const corpoPix = montarCorpoPix({
+    pedido: { id: 'ped-1' },
+    produto: { nome: 'Bot 24h', valorCentavos: 19700 },
+    cliente: { nome: 'Maria', email: 'm@x.com', cpf: '52998224725', telefone: '11999998888' }
+  });
+
+  await teste('customer.document vai como objeto, não string', async () => {
+    /* A API .NET da FreePay recusa string aqui com erro de conversão para
+       DocumentRequest — este teste impede a regressão. */
+    assert.equal(typeof corpoPix.customer.document, 'object');
+    assert.equal(corpoPix.customer.document.number, '52998224725');
+    assert.ok(corpoPix.customer.document.type);
+  });
+
+  await teste('valor e referência do pedido seguem no corpo', async () => {
+    assert.equal(corpoPix.amount, 19700);
+    assert.equal(corpoPix.reference_id, 'ped-1');
+    assert.equal(corpoPix.payment_method, 'pix');
+  });
+}
+
 servidor.close();
 console.log(`\n  ${passou} passaram, ${falhou} falharam\n`);
 process.exit(falhou ? 1 : 0);
