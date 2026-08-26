@@ -228,6 +228,15 @@ export function montarCorpoPix({ pedido, produto, cliente }) {
    Resta descobrir o formato da validade. Cada perfil abaixo mantém
    holder_name e varia só isso: nome dos campos, texto ou número, ano com
    dois ou quatro dígitos. */
+/* Variações do valor de payment_method. O Pix funciona com "pix", então o
+   nome do campo está certo; falta saber o valor aceito para crédito. Se a
+   API roteia por esse valor num switch sem caso padrão, um valor não
+   reconhecido explica um 500 logo após a validação passar. */
+export const METODOS_CARTAO = [
+  'metodo:credit_card', 'metodo:creditcard', 'metodo:credit',
+  'metodo:card', 'metodo:CreditCard', 'metodo:CREDIT_CARD'
+];
+
 export const PERFIS_CARTAO = [
   'camel',        // expirationMonth / expirationYear, texto  (nunca testado com holder_name)
   'camel_num',    // idem, como número
@@ -240,11 +249,13 @@ export const PERFIS_CARTAO = [
   'mes_ano',      // month / year, texto
   'mes_ano_num'   // month / year, número
 ];
-export const FORMATOS_CARTAO = PERFIS_CARTAO;
+export const FORMATOS_CARTAO = [...METODOS_CARTAO, ...PERFIS_CARTAO];
 
 export function blocoCartao(cartao, perfilPedido) {
   const { numero, titular, mes, ano, cvv } = cartao;
-  const perfil = String(perfilPedido || env('FREEPAY_FORMATO_CARTAO', 'camel')).trim();
+  let perfil = String(perfilPedido || env('FREEPAY_FORMATO_CARTAO', 'camel')).trim();
+  /* Perfis "metodo:x" variam apenas o payment_method e usam o bloco padrão. */
+  if (perfil.startsWith('metodo:')) perfil = 'camel';
   const aa = ano.slice(-2);
   const base = { number: numero, holder_name: titular, cvv };
 
@@ -263,6 +274,12 @@ export function blocoCartao(cartao, perfilPedido) {
   }
 }
 
+/* Extrai o valor de payment_method quando o perfil o carrega. */
+function metodoDoPerfil(perfil) {
+  const p = String(perfil || '');
+  return p.startsWith('metodo:') ? p.slice(7) : '';
+}
+
 export function montarCorpoCartao({ pedido, produto, cliente, endereco, tokenCartao, cartao, parcelas, formato, ip }) {
   /* Dois caminhos: token (preferido) ou dados do cartão (só com
      CARTAO_DIRETO=1 — veja o aviso em _config.js).
@@ -279,7 +296,7 @@ export function montarCorpoCartao({ pedido, produto, cliente, endereco, tokenCar
 
   return {
     amount: produto.valorCentavos,
-    payment_method: env('FREEPAY_METODO_CARTAO', 'credit_card'),
+    payment_method: metodoDoPerfil(formato) || env('FREEPAY_METODO_CARTAO', 'credit_card'),
     installments: parcelas,
     ...pagamento,
     reference_id: pedido.id,
