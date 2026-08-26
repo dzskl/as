@@ -50,11 +50,13 @@ const env = (nome, padrao = '') => process.env[nome] || padrao;
 function semDadosSensiveis(corpo) {
   if (!corpo || typeof corpo !== 'object') return corpo;
   const copia = JSON.parse(JSON.stringify(corpo));
-  if (copia.card) {
-    copia.card = {
-      ...copia.card,
-      number: copia.card.number ? '****' + String(copia.card.number).slice(-4) : undefined,
-      cvv: copia.card.cvv ? '***' : undefined
+  /* Cobre todos os arranjos possíveis do bloco de cartão. */
+  for (const chave of ['card', 'credit_card', 'creditCard']) {
+    if (!copia[chave]) continue;
+    copia[chave] = {
+      ...copia[chave],
+      number: copia[chave].number ? '****' + String(copia[chave].number).slice(-4) : undefined,
+      cvv: copia[chave].cvv ? '***' : undefined
     };
   }
   return copia;
@@ -182,22 +184,60 @@ export function montarCorpoPix({ pedido, produto, cliente }) {
   };
 }
 
+/* Arranjos do bloco de cartão. Todos carregam a mesma informação — muda só
+   o nome e o formato dos campos, que é o que precisamos descobrir. */
+export function blocoCartao(cartao) {
+  const { numero, titular, mes, ano, cvv } = cartao;
+  const formato = env('FREEPAY_FORMATO_CARTAO', 'a').trim().toLowerCase();
+
+  switch (formato) {
+    /* b — snake_case por extenso, comum em gateways brasileiros */
+    case 'b':
+      return { card: {
+        number: numero, holder_name: titular,
+        expiration_month: mes, expiration_year: ano, cvv
+      } };
+
+    /* c — camelCase, padrão de serialização mais comum em APIs .NET */
+    case 'c':
+      return { card: {
+        number: numero, holderName: titular,
+        expirationMonth: mes, expirationYear: ano, cvv
+      } };
+
+    /* d — validade num campo único MM/AA, dentro de credit_card */
+    case 'd':
+      return { credit_card: {
+        number: numero, holder_name: titular,
+        expiration_date: `${mes}/${ano.slice(-2)}`, cvv
+      } };
+
+    /* a — abreviado (padrão atual) */
+    default:
+      return { card: {
+        number: numero, holder_name: titular,
+        exp_month: mes, exp_year: ano, cvv
+      } };
+  }
+}
+
 export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas }) {
   /* Dois caminhos: token (preferido) ou dados do cartão (só com
-     CARTAO_DIRETO=1 — veja o aviso em _config.js). */
+     CARTAO_DIRETO=1 — veja o aviso em _config.js).
+
+     O formato do bloco de cartão não está documentado, e a API responde 500
+     sem corpo quando não gosta dele — ou seja, não diz o que espera. Por isso
+     os quatro arranjos mais comuns ficam selecionáveis por
+     FREEPAY_FORMATO_CARTAO (a, b, c ou d), para testar um por deploy sem
+     precisar mexer no código. Combine com PRECO_TESTE_CENTAVOS=100 para
+     testar cobrando R$ 1,00. */
   const pagamento = tokenCartao
     ? { card_token: tokenCartao }
-    : { card: {
-          number: cartao.numero,
-          holder_name: cartao.titular,
-          exp_month: cartao.mes,
-          exp_year: cartao.ano,
-          cvv: cartao.cvv
-        } };
+    : blocoCartao(cartao);
 
   return {
     amount: produto.valorCentavos,
-    payment_method: 'credit_card',
+    payment_method: env('FREEPAY_METODO_CARTAO', 'credit_card'),
     installments: parcelas,
     ...pagamento,
     reference_id: pedido.id,

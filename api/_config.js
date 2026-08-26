@@ -16,8 +16,27 @@ export const PRODUTOS = {
   }
 };
 
+/* Aceita as formas que uma pessoa naturalmente digita num painel de variáveis
+   de ambiente: 1, true, sim, yes, on — com ou sem espaço, maiúscula ou não.
+   Comparar com '1' cru já custou horas de gente achando que a variável não
+   tinha sido aplicada. */
+export function ligado(valor) {
+  return ['1', 'true', 'sim', 'yes', 'on'].includes(String(valor ?? '').trim().toLowerCase());
+}
+
 export function buscarProduto(id) {
-  return PRODUTOS[id] || null;
+  const produto = PRODUTOS[id];
+  if (!produto) return null;
+
+  /* PRECO_TESTE_CENTAVOS troca o valor de TODOS os produtos, para testar a
+     integração cobrando centavos em vez do preço real. Ex: 100 = R$ 1,00.
+     Só funciona junto com DIAGNOSTICO ligado, para que ninguém deixe o site
+     vendendo por R$ 1 sem perceber. REMOVA as duas ao terminar os testes. */
+  const teste = Number(process.env.PRECO_TESTE_CENTAVOS);
+  if (ligado(process.env.DIAGNOSTICO) && Number.isFinite(teste) && teste >= 100) {
+    return { ...produto, valorCentavos: teste, nome: produto.nome + ' (TESTE)' };
+  }
+  return produto;
 }
 
 /* Formata centavos para exibição: 19700 -> "197,00" */
@@ -34,14 +53,6 @@ export function opcoesParcelamento(produto) {
     opcoes.push({ parcelas: n, valorParcelaCentavos: parcela });
   }
   return opcoes;
-}
-
-/* Aceita as formas que uma pessoa naturalmente digita num painel de variáveis
-   de ambiente: 1, true, sim, yes, on — com ou sem espaço, maiúscula ou não.
-   Comparar com '1' cru já custou horas de gente achando que a variável não
-   tinha sido aplicada. */
-export function ligado(valor) {
-  return ['1', 'true', 'sim', 'yes', 'on'].includes(String(valor ?? '').trim().toLowerCase());
 }
 
 export const CONFIG = {
