@@ -186,76 +186,55 @@ export function montarCorpoPix({ pedido, produto, cliente }) {
 
 /* Arranjos do bloco de cartão. Todos carregam a mesma informação — muda só
    o nome e o formato dos campos, que é o que precisamos descobrir. */
-/* NOMES POSSÍVEIS DO TITULAR DO CARTÃO
+/* PERFIS DO BLOCO DE CARTÃO
    -------------------------------------------------------------------------
-   O que a própria API já nos disse, tentativa por tentativa:
+   O que cada resposta da API revelou:
 
-     d → "Card é obrigatório"            ⇒ a chave do bloco é "card"
-     c → "Card.HolderName is required"   ⇒ number, expirationMonth,
-                                            expirationYear e cvv foram aceitos;
-                                            só o titular não encaixou
-     e → HTTP 500                        ⇒ mandar várias grafias juntas QUEBRA
-                                            a API: ela rejeita propriedades
-                                            desconhecidas em vez de ignorá-las
-     a, b → HTTP 500                     ⇒ validade em snake_case não é lida
+     d  → 400 "Card é obrigatório"          ⇒ a chave do bloco é "card"
+     c  → 400 "Card.HolderName is required" ⇒ o resto do corpo passou
+     12 grafias do titular → 400, EXCETO holder_name → 500
 
-   Conclusão: o corpo correto é o do "c", mudando apenas o nome do campo do
-   titular — e uma grafia por requisição. "HolderName" é o nome da propriedade
-   no modelo .NET deles; o nome no JSON é um destes abaixo. */
-export const CHAVES_TITULAR = [
-  'HolderName', 'holder_name', 'holder', 'name',
-  'cardHolderName', 'card_holder_name', 'cardHolder', 'card_holder',
-  'ownerName', 'owner', 'titular', 'holderName'
+   Esse último ponto é a chave: um 500 significa que a requisição foi mais
+   longe, não que foi rejeitada. Todos os arranjos que deram 500 (a, b, e)
+   continham holder_name. Logo holder_name É o nome certo: ele satisfaz a
+   validação, a API prossegue e quebra depois — provavelmente ao processar a
+   validade, que nesses arranjos ia num formato que ela não lê.
+
+   Resta descobrir o formato da validade. Cada perfil abaixo mantém
+   holder_name e varia só isso: nome dos campos, texto ou número, ano com
+   dois ou quatro dígitos. */
+export const PERFIS_CARTAO = [
+  'camel',        // expirationMonth / expirationYear, texto  (nunca testado com holder_name)
+  'camel_num',    // idem, como número
+  'camel_aa',     // idem, ano com 2 dígitos
+  'snake_num',    // expiration_month / expiration_year, número
+  'snake_aa',     // idem, ano com 2 dígitos
+  'abrev_num',    // exp_month / exp_year, número
+  'data_aa',      // expiration_date "MM/AA"
+  'data_aaaa',    // expiration_date "MM/AAAA"
+  'mes_ano',      // month / year, texto
+  'mes_ano_num'   // month / year, número
 ];
+export const FORMATOS_CARTAO = PERFIS_CARTAO;
 
-/* Arranjos históricos, mantidos para poder reproduzir os testes anteriores
-   via FREEPAY_FORMATO_CARTAO. O padrão hoje é sondar as chaves acima. */
-const ARRANJOS_ANTIGOS = ['a', 'b', 'c', 'd'];
-export const FORMATOS_CARTAO = CHAVES_TITULAR;
-
-export function blocoCartao(cartao, formatoPedido) {
+export function blocoCartao(cartao, perfilPedido) {
   const { numero, titular, mes, ano, cvv } = cartao;
-  const formato = String(formatoPedido || env('FREEPAY_FORMATO_CARTAO', 'HolderName')).trim();
+  const perfil = String(perfilPedido || env('FREEPAY_FORMATO_CARTAO', 'camel')).trim();
+  const aa = ano.slice(-2);
+  const base = { number: numero, holder_name: titular, cvv };
 
-  if (!ARRANJOS_ANTIGOS.includes(formato.toLowerCase()) || formato.length > 1) {
-    /* Corpo confirmado pela API, com UMA grafia do titular. */
-    return { card: {
-      number: numero,
-      expirationMonth: mes,
-      expirationYear: ano,
-      cvv,
-      [formato]: titular
-    } };
-  }
-
-  switch (formato.toLowerCase()) {
-    /* b — snake_case por extenso */
-    case 'b':
-      return { card: {
-        number: numero, holder_name: titular,
-        expiration_month: mes, expiration_year: ano, cvv
-      } };
-
-    /* c — camelCase (chegou à validação; só o titular faltou) */
-    case 'c':
-      return { card: {
-        number: numero, holderName: titular,
-        expirationMonth: mes, expirationYear: ano, cvv
-      } };
-
-    /* d — bloco credit_card (recusado: a chave é "card") */
-    case 'd':
-      return { credit_card: {
-        number: numero, holder_name: titular,
-        expiration_date: `${mes}/${ano.slice(-2)}`, cvv
-      } };
-
-    /* a — abreviado */
-    default:
-      return { card: {
-        number: numero, holder_name: titular,
-        exp_month: mes, exp_year: ano, cvv
-      } };
+  switch (perfil) {
+    case 'camel_num':  return { card: { ...base, expirationMonth: Number(mes), expirationYear: Number(ano) } };
+    case 'camel_aa':   return { card: { ...base, expirationMonth: mes, expirationYear: aa } };
+    case 'snake_num':  return { card: { ...base, expiration_month: Number(mes), expiration_year: Number(ano) } };
+    case 'snake_aa':   return { card: { ...base, expiration_month: mes, expiration_year: aa } };
+    case 'abrev_num':  return { card: { ...base, exp_month: Number(mes), exp_year: Number(ano) } };
+    case 'data_aa':    return { card: { ...base, expiration_date: `${mes}/${aa}` } };
+    case 'data_aaaa':  return { card: { ...base, expiration_date: `${mes}/${ano}` } };
+    case 'mes_ano':    return { card: { ...base, month: mes, year: ano } };
+    case 'mes_ano_num':return { card: { ...base, month: Number(mes), year: Number(ano) } };
+    case 'camel':
+    default:           return { card: { ...base, expirationMonth: mes, expirationYear: ano } };
   }
 }
 
@@ -400,7 +379,7 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
   /* Sem configuração explícita, começamos pela grafia mais provável e a
      sonda percorre as demais. Não normalizamos a caixa: "HolderName" e
      "holderName" são nomes JSON diferentes. */
-  const configurado = env('FREEPAY_FORMATO_CARTAO', 'HolderName').trim();
+  const configurado = env('FREEPAY_FORMATO_CARTAO', 'camel').trim();
 
   /* Durante a integração (DIAGNOSTICO ligado), tentamos os formatos restantes
      quando a API devolve 5xx. Isso é seguro justamente porque um 5xx aqui não
