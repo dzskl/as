@@ -42,5 +42,13 @@ export const CONFIG = {
   modoGateway: process.env.GATEWAY_MODO || 'simulado',
   urlSite: process.env.URL_SITE || 'http://localhost:3000',
   /* Segredo usado para assinar o token de acesso à página de obrigado. */
-  segredoApp: process.env.SEGREDO_APP || 'troque-este-segredo-em-producao'
+  segredoApp: process.env.SEGREDO_APP || 'troque-este-segredo-em-producao',
+
+  /* DIAGNOSTICO=1 faz a API devolver a mensagem de erro crua do gateway na
+     resposta, em vez de só registrá-la no log. Serve para descobrir quais
+     campos a API espera durante a integração — a mensagem de erro do próprio
+     gateway costuma dizer exatamente o que falta.
+     DESLIGUE depois de integrar: mensagens internas não devem aparecer para
+     o cliente final. */
+  diagnostico: process.env.DIAGNOSTICO === '1'
 };

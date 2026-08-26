@@ -113,6 +113,7 @@ export default async function handler(req, res) {
        mensagem genérica, sem expor a estrutura interna nem a mensagem crua
        do gateway. */
     console.error('[criar-pagamento] falha:', e);
-    return erro(res, 502, 'Não conseguimos iniciar o pagamento agora. Tente novamente em instantes.');
+    return erro(res, 502, 'Não conseguimos iniciar o pagamento agora. Tente novamente em instantes.',
+      CONFIG.diagnostico ? { diagnostico: e.message } : {});
   }
 }

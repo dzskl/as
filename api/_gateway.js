@@ -75,6 +75,14 @@ async function chamarApi(caminho, corpo, metodo = 'POST') {
       signal: controle.signal
     });
     const texto = await resposta.text();
+
+    if (CONFIG.diagnostico) {
+      /* Log completo dos dois lados da conversa, para acertar o mapeamento
+         de campos durante a integração. Nunca deixe DIAGNOSTICO=1 ligado
+         depois: o corpo carrega dados pessoais do comprador. */
+      console.log('[gateway] POST', base + caminho, '\n  enviado:', JSON.stringify(corpo),
+                  '\n  status:', resposta.status, '\n  recebido:', texto.slice(0, 1500));
+    }
     let dados;
     try { dados = texto ? JSON.parse(texto) : {}; }
     catch { throw new Error(`Resposta não-JSON do gateway (${resposta.status}): ${texto.slice(0, 200)}`); }
