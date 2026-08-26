@@ -186,13 +186,37 @@ export function montarCorpoPix({ pedido, produto, cliente }) {
 
 /* Arranjos do bloco de cartão. Todos carregam a mesma informação — muda só
    o nome e o formato dos campos, que é o que precisamos descobrir. */
-export const FORMATOS_CARTAO = ['a', 'b', 'c', 'd'];
+/* 'e' primeiro: é o arranjo que a própria API nos indicou, com todas as
+   grafias possíveis do nome do titular. Os outros ficam como alternativa. */
+export const FORMATOS_CARTAO = ['e', 'c', 'a', 'b', 'd'];
 
 export function blocoCartao(cartao, formatoPedido) {
   const { numero, titular, mes, ano, cvv } = cartao;
-  const formato = String(formatoPedido || env('FREEPAY_FORMATO_CARTAO', 'a')).trim().toLowerCase();
+  const formato = String(formatoPedido || env('FREEPAY_FORMATO_CARTAO', 'e')).trim().toLowerCase();
 
   switch (formato) {
+    /* e — o arranjo que a API confirmou (objeto "card", validade em
+       camelCase e como texto), com TODAS as grafias plausíveis do nome do
+       titular ao mesmo tempo.
+
+       Por que isso funciona: a validação respondeu
+         {"Card.HolderName": ["The HolderName field is required."]}
+       ou seja, a propriedade do modelo chama-se HolderName, mas o nome dela
+       no JSON é outro — e não sabemos qual. Serializadores .NET ignoram
+       propriedades desconhecidas por padrão, então mandar todas as grafias
+       juntas faz a correta encaixar e as demais serem descartadas. */
+    case 'e':
+      return { card: {
+        number: numero,
+        expirationMonth: mes, expirationYear: ano, cvv,
+        holderName: titular,
+        holder_name: titular,
+        holder: titular,
+        name: titular,
+        cardHolderName: titular,
+        card_holder_name: titular
+      } };
+
     /* b — snake_case por extenso, comum em gateways brasileiros */
     case 'b':
       return { card: {
