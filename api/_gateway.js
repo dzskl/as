@@ -18,12 +18,25 @@
      • Autenticação: Basic base64("PUBLIC_KEY:SECRET_KEY")
        (as DUAS chaves, separadas por dois-pontos — não é só a secreta)
 
-   ⚠️ AINDA NÃO CONFIRMADO — não ligue GATEWAY_MODO=freepay antes de checar:
-     1. os nomes dos campos do corpo do POST (montarCorpoPix / montarCorpoCartao)
-     2. o formato da resposta (de onde sai o QR Code e o id da transação)
-     3. o endpoint de consulta de transação (FREEPAY_CAMINHO_CONSULTA)
-     4. o header e o algoritmo da assinatura do webhook (FREEPAY_WEBHOOK_HEADER)
-     5. se existe SDK JS para tokenizar cartão no navegador
+   DESCOBERTO tentativa a tentativa, lendo as respostas da própria API:
+     • customer.document é objeto { number, type }, não string
+     • metadata é obrigatório
+     • o bloco de cartão é "card", e o campo do titular é holder_name
+     • payment_method para crédito é "creditcard" (sem underline)
+     • a API ignora propriedades desconhecidas, mas responde 500 sem corpo
+       quando quebra internamente — 500 aqui significa que a requisição
+       avançou, não que foi rejeitada
+
+   ⚠️ AINDA NÃO CONFIRMADO:
+     1. o formato da resposta do Pix (de onde sai o QR Code)
+     2. o endpoint de consulta de transação (FREEPAY_CAMINHO_CONSULTA)
+     3. se existe SDK JS para tokenizar cartão no navegador
+
+   ⛔ BLOQUEIO FORA DO CÓDIGO: cartão retorna
+      "Erro ao processar a transação com as adquirentes.
+       Primary acquirer not configured"
+      A conta precisa de um adquirente primário configurado para crédito.
+      Nada no código resolve isso.
 
    Tudo isso é ajustável por variável de ambiente ou nas duas funções de
    montagem logo abaixo, sem reescrever o resto do sistema.
@@ -228,12 +241,15 @@ export function montarCorpoPix({ pedido, produto, cliente }) {
    Resta descobrir o formato da validade. Cada perfil abaixo mantém
    holder_name e varia só isso: nome dos campos, texto ou número, ano com
    dois ou quatro dígitos. */
-/* Variações do valor de payment_method. O Pix funciona com "pix", então o
-   nome do campo está certo; falta saber o valor aceito para crédito. Se a
-   API roteia por esse valor num switch sem caso padrão, um valor não
-   reconhecido explica um 500 logo após a validação passar. */
+/* CONFIRMADO: o valor de payment_method para crédito é "creditcard", sem
+   underline. Foi ele que atravessou o roteamento e chegou até a etapa do
+   adquirente, onde a API respondeu 400 com mensagem de negócio
+   ("Primary acquirer not configured") em vez de 500 sem corpo.
+
+   Os demais valores continuam na lista apenas para reproduzir a sonda. */
 export const METODOS_CARTAO = [
-  'metodo:credit_card', 'metodo:creditcard', 'metodo:credit',
+  'metodo:creditcard',        // ← o correto
+  'metodo:credit_card', 'metodo:credit',
   'metodo:card', 'metodo:CreditCard', 'metodo:CREDIT_CARD'
 ];
 
@@ -296,7 +312,7 @@ export function montarCorpoCartao({ pedido, produto, cliente, endereco, tokenCar
 
   return {
     amount: produto.valorCentavos,
-    payment_method: metodoDoPerfil(formato) || env('FREEPAY_METODO_CARTAO', 'credit_card'),
+    payment_method: metodoDoPerfil(formato) || env('FREEPAY_METODO_CARTAO', 'creditcard'),
     installments: parcelas,
     ...pagamento,
     reference_id: pedido.id,
