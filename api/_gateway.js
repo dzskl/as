@@ -186,9 +186,11 @@ export function montarCorpoPix({ pedido, produto, cliente }) {
 
 /* Arranjos do bloco de cartão. Todos carregam a mesma informação — muda só
    o nome e o formato dos campos, que é o que precisamos descobrir. */
-export function blocoCartao(cartao) {
+export const FORMATOS_CARTAO = ['a', 'b', 'c', 'd'];
+
+export function blocoCartao(cartao, formatoPedido) {
   const { numero, titular, mes, ano, cvv } = cartao;
-  const formato = env('FREEPAY_FORMATO_CARTAO', 'a').trim().toLowerCase();
+  const formato = String(formatoPedido || env('FREEPAY_FORMATO_CARTAO', 'a')).trim().toLowerCase();
 
   switch (formato) {
     /* b — snake_case por extenso, comum em gateways brasileiros */
@@ -221,7 +223,7 @@ export function blocoCartao(cartao) {
   }
 }
 
-export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas }) {
+export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas, formato }) {
   /* Dois caminhos: token (preferido) ou dados do cartão (só com
      CARTAO_DIRETO=1 — veja o aviso em _config.js).
 
@@ -233,7 +235,7 @@ export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, carta
      testar cobrando R$ 1,00. */
   const pagamento = tokenCartao
     ? { card_token: tokenCartao }
-    : blocoCartao(cartao);
+    : blocoCartao(cartao, formato);
 
   return {
     amount: produto.valorCentavos,
@@ -359,12 +361,46 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
   }
 
   const caminho = env('FREEPAY_CAMINHO_TRANSACAO', '/payment-transaction/create');
-  const r = await chamarApi(caminho, montarCorpoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas }));
-  return {
-    idGateway: String(r.id ?? r.transaction_id ?? ''),
-    status: traduzirStatus(r.status),
-    motivoRecusa: r.refuse_reason ?? r.status_reason ?? null
-  };
+  const configurado = env('FREEPAY_FORMATO_CARTAO', 'a').trim().toLowerCase();
+
+  /* Durante a integração (DIAGNOSTICO ligado), tentamos os formatos restantes
+     quando a API devolve 5xx. Isso é seguro justamente porque um 5xx aqui não
+     cria transação — verificamos no painel do gateway que a tentativa que
+     falhou com 500 não gerou cobrança alguma. Fora do diagnóstico, uma
+     tentativa só: em produção, insistir arrisca cobrar duas vezes. */
+  const tentar = CONFIG.diagnostico && !tokenCartao
+    ? [configurado, ...FORMATOS_CARTAO.filter(f => f !== configurado)]
+    : [configurado];
+
+  const historico = [];
+  for (const formato of tentar) {
+    try {
+      const r = await chamarApi(caminho,
+        montarCorpoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas, formato }));
+
+      if (CONFIG.diagnostico) console.log('[gateway] formato de cartão aceito:', formato);
+      return {
+        idGateway: String(r.id ?? r.transaction_id ?? r.transactionId ?? ''),
+        status: traduzirStatus(r.status),
+        motivoRecusa: r.refuse_reason ?? r.status_reason ?? null,
+        formatoUsado: formato
+      };
+    } catch (e) {
+      historico.push(`${formato}: HTTP ${e.statusHttp ?? '?'}`);
+      /* 4xx é resposta útil — a API leu o corpo e reclamou de algo concreto.
+         Só faz sentido seguir tentando outros arranjos enquanto for 5xx. */
+      if (!e.falhaDoGateway) {
+        e.message += ` | formato de cartão testado: ${formato}`;
+        throw e;
+      }
+    }
+  }
+
+  const erro = new Error(
+    `Nenhum formato de cartão foi aceito (todos com erro 5xx) — ${historico.join(', ')}. ` +
+    'Provável que este endpoint não aceite dados de cartão direto e exija tokenização.');
+  erro.falhaDoGateway = true;
+  throw erro;
 }
 
 export async function consultarPagamento(idGateway) {
