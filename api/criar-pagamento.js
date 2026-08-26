@@ -173,8 +173,15 @@ export default async function handler(req, res) {
     /* O detalhe técnico vai para o log da Vercel; o cliente recebe uma
        mensagem genérica, sem expor a estrutura interna nem a mensagem crua
        do gateway. */
-    console.error('[criar-pagamento] falha:', e);
-    return erro(res, 502, 'Não conseguimos iniciar o pagamento agora. Tente novamente em instantes.',
-      CONFIG.diagnostico ? { diagnostico: detalharErro(e) } : {});
+    /* Registramos o id do pedido junto: se a cobrança tiver sido criada no
+       gateway antes da falha, é por ele que se acha a transação no painel. */
+    console.error('[criar-pagamento] falha no pedido', pedido.id, '-', e);
+
+    const mensagem = e.falhaDoGateway
+      ? 'O processador de pagamentos está instável no momento. Antes de tentar de novo, confira se a cobrança já não foi gerada.'
+      : 'Não conseguimos iniciar o pagamento agora. Tente novamente em instantes.';
+
+    return erro(res, 502, mensagem,
+      CONFIG.diagnostico ? { diagnostico: detalharErro(e), pedidoId: pedido.id } : {});
   }
 }

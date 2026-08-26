@@ -113,7 +113,18 @@ async function chamarApi(caminho, corpo, metodo = 'POST') {
       const cru = CONFIG.diagnostico
         ? ` | HTTP ${resposta.status} | resposta: ${texto ? texto.slice(0, 900) : '(corpo vazio)'}`
         : '';
-      throw new Error(`Gateway recusou a requisição: ${msg}${cru}`);
+      /* 5xx é falha do lado do gateway, não do nosso corpo. A distinção
+         importa: em erro de validação (4xx) a correção é nossa; em 5xx a
+         cobrança PODE ter sido criada antes da falha, então repetir a
+         requisição arrisca cobrar duas vezes. */
+      const falhaDoGateway = resposta.status >= 500;
+      const rotulo = falhaDoGateway
+        ? `Erro interno do gateway (HTTP ${resposta.status}) — a requisição foi aceita mas a resposta falhou`
+        : `Gateway recusou a requisição: ${msg}`;
+      const erroFinal = new Error(`${rotulo}${cru}`);
+      erroFinal.falhaDoGateway = falhaDoGateway;
+      erroFinal.statusHttp = resposta.status;
+      throw erroFinal;
     }
     return dados;
   } finally {
