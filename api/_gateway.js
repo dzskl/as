@@ -381,12 +381,12 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
      "holderName" são nomes JSON diferentes. */
   const configurado = env('FREEPAY_FORMATO_CARTAO', 'camel').trim();
 
-  /* Durante a integração (DIAGNOSTICO ligado), tentamos os formatos restantes
-     quando a API devolve 5xx. Isso é seguro justamente porque um 5xx aqui não
-     cria transação — verificamos no painel do gateway que a tentativa que
-     falhou com 500 não gerou cobrança alguma. Fora do diagnóstico, uma
-     tentativa só: em produção, insistir arrisca cobrar duas vezes. */
-  const tentar = CONFIG.diagnostico && !tokenCartao
+  /* A sonda de formatos já cumpriu seu papel: dez perfis de validade, todos
+     com 500, provaram que o problema não é o formato do corpo. Por isso ela
+     agora só roda quando pedida explicitamente com FREEPAY_SONDAR=1 —
+     manter ligada gastaria dez requisições por tentativa à toa.
+     Reative se um dia a API mudar e valer a pena varrer os formatos de novo. */
+  const tentar = CONFIG.diagnostico && ligado(env('FREEPAY_SONDAR')) && !tokenCartao
     ? [configurado, ...FORMATOS_CARTAO.filter(f => f !== configurado)]
     : [configurado];
 
