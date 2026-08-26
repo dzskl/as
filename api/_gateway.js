@@ -149,8 +149,8 @@ function traduzirStatus(bruto) {
    "The JSON value could not be converted to ... DocumentRequest".
    O nome do tipo ("cpf"/"CPF") é ajustável por variável de ambiente caso a
    API espere outro formato. */
-function montarCliente(cliente) {
-  return {
+function montarCliente(cliente, endereco) {
+  const dados = {
     name: cliente.nome,
     email: cliente.email,
     phone: cliente.telefone,
@@ -159,6 +159,31 @@ function montarCliente(cliente) {
       type: env('FREEPAY_DOC_TIPO', 'cpf')
     }
   };
+
+  /* Endereço de cobrança: obrigatório para cartão em praticamente todo
+     adquirente (é o que alimenta a análise antifraude), e desnecessário para
+     Pix. Como a API quebra com 500 sem corpo assim que a validação do cartão
+     passa, um endereço ausente batendo em NullReferenceException do lado
+     deles é a hipótese que melhor explica o sintoma.
+
+     Mandamos em várias grafias de propósito: já sabemos que a API ignora
+     propriedades desconhecidas — as onze grafias erradas do titular voltaram
+     como 400 de campo faltando, não como erro. */
+  if (endereco) {
+    const comum = {
+      street: endereco.rua,
+      number: endereco.numero,
+      complement: endereco.complemento || '',
+      neighborhood: endereco.bairro,
+      city: endereco.cidade,
+      state: endereco.uf,
+      country: 'BR'
+    };
+    dados.address = { ...comum, zip_code: endereco.cep, zipCode: endereco.cep, postal_code: endereco.cep };
+    dados.billing_address = dados.address;
+  }
+
+  return dados;
 }
 
 /* A FreePay exige um campo "metadata" ("O json metadata é obrigatório").
@@ -238,7 +263,7 @@ export function blocoCartao(cartao, perfilPedido) {
   }
 }
 
-export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas, formato }) {
+export function montarCorpoCartao({ pedido, produto, cliente, endereco, tokenCartao, cartao, parcelas, formato, ip }) {
   /* Dois caminhos: token (preferido) ou dados do cartão (só com
      CARTAO_DIRETO=1 — veja o aviso em _config.js).
 
@@ -260,7 +285,9 @@ export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, carta
     reference_id: pedido.id,
     postback_url: `${CONFIG.urlSite}/api/webhook`,
     items: [{ title: produto.nome, unit_price: produto.valorCentavos, quantity: 1 }],
-    customer: montarCliente(cliente),
+    customer: montarCliente(cliente, endereco),
+    ip: ip || undefined,
+    ip_address: ip || undefined,
     metadata: montarMetadata(pedido, produto)
   };
 }
@@ -363,7 +390,7 @@ export async function criarPagamentoPix({ pedido, produto, cliente }) {
   };
 }
 
-export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas }) {
+export async function criarPagamentoCartao({ pedido, produto, cliente, endereco, tokenCartao, cartao, parcelas, ip }) {
   if (CONFIG.modoGateway === 'simulado') {
     /* Token de teste que termina em "recusa" simula uma recusa do emissor,
        para você conseguir testar a tela de erro. */
@@ -395,7 +422,7 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
   for (const formato of tentar) {
     try {
       const r = await chamarApi(caminho,
-        montarCorpoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas, formato }));
+        montarCorpoCartao({ pedido, produto, cliente, endereco, tokenCartao, cartao, parcelas, formato, ip }));
 
       if (CONFIG.diagnostico) console.log('[gateway] formato de cartão aceito:', formato);
       return {

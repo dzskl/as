@@ -16,14 +16,28 @@
 
 import crypto from 'node:crypto';
 import { buscarProduto, opcoesParcelamento, CONFIG } from './_config.js';
-import { validarCliente } from './_validacao.js';
+import { validarCliente, limpar } from './_validacao.js';
 import { criarPagamentoPix, criarPagamentoCartao, STATUS } from './_gateway.js';
 import { salvarPedido } from './_pedidos.js';
 import { json, erro, lerJson, ipDoCliente, limiteExcedido } from './_http.js';
 
-/* Erros de rede do fetch chegam como "fetch failed", com o motivo real
-   escondido em e.cause (DNS, TLS, porta, timeout). Durante a integração,
-   é justamente a causa que interessa. */
+/* Endereço de cobrança. Cartão precisa; Pix não. É o que alimenta a análise
+   antifraude do adquirente — e sem ele muitos gateways recusam ou quebram. */
+function validarEndereco(dados) {
+  if (!dados) return null;
+  const cep = String(dados.cep ?? '').replace(/\D/g, '');
+  const rua = limpar(dados.rua, 120);
+  const numero = limpar(dados.numero, 20);
+  const bairro = limpar(dados.bairro, 80);
+  const cidade = limpar(dados.cidade, 80);
+  const uf = limpar(dados.uf, 2).toUpperCase();
+
+  if (cep.length !== 8) return null;
+  if (rua.length < 3 || !numero || cidade.length < 2 || uf.length !== 2) return null;
+
+  return { cep, rua, numero, complemento: limpar(dados.complemento, 60), bairro, cidade, uf };
+}
+
 /* Valida e normaliza os dados do cartão. Nada aqui é gravado: o objeto
    devolvido vive apenas durante a requisição, a caminho do gateway. */
 function validarCartao(dados) {
@@ -59,6 +73,9 @@ function luhn(numero) {
   return soma % 10 === 0;
 }
 
+/* Erros de rede do fetch chegam como "fetch failed", com o motivo real
+   escondido em e.cause (DNS, TLS, porta, timeout). Durante a integração,
+   é justamente a causa que interessa. */
 function detalharErro(e) {
   const causa = e?.cause?.message || e?.cause?.code;
   return causa ? `${e.message} | causa: ${causa}` : String(e?.message || e);
@@ -90,6 +107,7 @@ export default async function handler(req, res) {
 
   let parcelas = 1;
   let cartao = null;
+  let endereco = null;
   if (metodo === 'cartao') {
     parcelas = Number(corpo.parcelas) || 1;
     const permitidas = opcoesParcelamento(produto).map(o => o.parcelas);
@@ -104,6 +122,11 @@ export default async function handler(req, res) {
       cartao = validarCartao(corpo.cartao);
       if (!cartao) return erro(res, 422, 'Confira os dados do cartão');
     }
+
+    endereco = validarEndereco(corpo.endereco);
+    if (!endereco) return erro(res, 422, 'Confira o endereço de cobrança', {
+      campos: { cep: 'Endereço de cobrança incompleto' }
+    });
   }
 
   const pedido = {
@@ -144,7 +167,8 @@ export default async function handler(req, res) {
     }
 
     const cobranca = await criarPagamentoCartao({
-      pedido, produto, cliente, tokenCartao: corpo.tokenCartao, cartao, parcelas
+      pedido, produto, cliente, endereco, tokenCartao: corpo.tokenCartao, cartao, parcelas,
+      ip: ipDoCliente(req)
     });
     pedido.idGateway = cobranca.idGateway;
     pedido.status = cobranca.status;

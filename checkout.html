@@ -218,7 +218,54 @@ footer{border-top:1px solid var(--linha);padding:26px 20px;text-align:center;fon
             <label for="parcelas">Parcelamento</label>
             <select id="parcelas"></select>
           </div>
-          <button class="btn" id="btn-cartao" type="button">Pagar com cartão</button>
+
+          <!-- Endereço de cobrança: exigido pela análise antifraude do
+               adquirente. Só o CEP e o número são digitados; o resto vem
+               preenchido pela consulta do CEP. -->
+          <h2 style="margin:26px 0 16px"><span class="passo-num">3</span> Endereço de cobrança</h2>
+          <p class="ajuda" style="margin-bottom:16px">O mesmo endereço da fatura do cartão. Serve para aprovar a compra.</p>
+
+          <div class="linha-campos">
+            <div class="campo">
+              <label for="cep">CEP</label>
+              <input id="cep" inputmode="numeric" autocomplete="postal-code" placeholder="00000-000">
+              <div class="erro-campo" id="erro-cep"></div>
+            </div>
+            <div class="campo">
+              <label for="numero-end">Número</label>
+              <input id="numero-end" inputmode="numeric" autocomplete="address-line2" placeholder="123">
+              <div class="erro-campo" id="erro-numero-end"></div>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="rua">Rua</label>
+            <input id="rua" autocomplete="address-line1" placeholder="Preenchido pelo CEP">
+            <div class="erro-campo" id="erro-rua"></div>
+          </div>
+          <div class="linha-campos">
+            <div class="campo">
+              <label for="bairro">Bairro</label>
+              <input id="bairro" placeholder="Preenchido pelo CEP">
+            </div>
+            <div class="campo">
+              <label for="complemento">Complemento <span style="font-weight:400;color:var(--txt-2)">(opcional)</span></label>
+              <input id="complemento" placeholder="Apto 42">
+            </div>
+          </div>
+          <div class="linha-campos">
+            <div class="campo">
+              <label for="cidade">Cidade</label>
+              <input id="cidade" placeholder="Preenchido pelo CEP">
+              <div class="erro-campo" id="erro-cidade"></div>
+            </div>
+            <div class="campo">
+              <label for="uf">Estado</label>
+              <input id="uf" maxlength="2" placeholder="SP" style="text-transform:uppercase">
+              <div class="erro-campo" id="erro-uf"></div>
+            </div>
+          </div>
+
+          <button class="btn" id="btn-cartao" type="button" style="margin-top:8px">Pagar com cartão</button>
           <p class="ajuda" style="margin-top:12px;text-align:center">
             🔒 Os dados do cartão são enviados criptografados direto ao processador de pagamento.
             Este site não armazena o número do seu cartão.
@@ -311,11 +358,39 @@ const mascaras = {
   },
   numero: (v) => v.replace(/\D/g,'').slice(0,19).replace(/(\d{4})(?=\d)/g,'$1 '),
   validade: (v) => v.replace(/\D/g,'').slice(0,4).replace(/(\d{2})(\d)/,'$1/$2'),
-  cvv: (v) => v.replace(/\D/g,'').slice(0,4)
+  cvv: (v) => v.replace(/\D/g,'').slice(0,4),
+  cep: (v) => v.replace(/\D/g,'').slice(0,8).replace(/(\d{5})(\d)/,'$1-$2')
 };
 for (const [id, fn] of Object.entries(mascaras)) {
   const el = document.getElementById(id);
   if (el) el.addEventListener('input', () => { el.value = fn(el.value); });
+}
+
+/* Consulta o CEP e preenche o endereço. Se o serviço estiver fora do ar ou
+   o CEP não existir, os campos continuam editáveis à mão — a compra nunca
+   depende de um serviço de terceiro estar disponível. */
+const campoCep = document.getElementById('cep');
+if (campoCep) {
+  campoCep.addEventListener('blur', async () => {
+    const cep = campoCep.value.replace(/\D/g,'');
+    if (cep.length !== 8) return;
+    campoCep.disabled = true;
+    try {
+      const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const d = await r.json();
+      if (d.erro) throw new Error('CEP não encontrado');
+      if (d.logradouro) $('#rua').value = d.logradouro;
+      if (d.bairro) $('#bairro').value = d.bairro;
+      if (d.localidade) $('#cidade').value = d.localidade;
+      if (d.uf) $('#uf').value = d.uf;
+      mostrarErroCampo('cep', '');
+      if (!$('#numero-end').value) $('#numero-end').focus();
+    } catch {
+      /* Silencioso de propósito: o cliente pode preencher manualmente. */
+    } finally {
+      campoCep.disabled = false;
+    }
+  });
 }
 
 /* ------------------------------------------------------------- utilidades */
@@ -340,6 +415,18 @@ function ocupado(botao, sim, textoOriginal) {
   botao.disabled = sim;
   botao.innerHTML = sim ? '<span class="girando"></span> Processando…' : textoOriginal;
 }
+function dadosEndereco() {
+  return {
+    cep: $('#cep').value,
+    rua: $('#rua').value,
+    numero: $('#numero-end').value,
+    complemento: $('#complemento').value,
+    bairro: $('#bairro').value,
+    cidade: $('#cidade').value,
+    uf: $('#uf').value
+  };
+}
+
 function dadosCliente() {
   return {
     nome: $('#nome').value,
@@ -562,6 +649,15 @@ function validarCartaoLocalmente() {
     mostrarErroCampo('validade','Validade inválida'); ok = false;
   }
   if (cvv.length < 3) { mostrarErroCampo('cvv','CVV inválido'); ok = false; }
+
+  /* Endereço de cobrança */
+  const e = dadosEndereco();
+  if (e.cep.replace(/\D/g,'').length !== 8) { mostrarErroCampo('cep','CEP inválido'); ok = false; }
+  if (e.rua.trim().length < 3) { mostrarErroCampo('rua','Informe a rua'); ok = false; }
+  if (!e.numero.trim()) { mostrarErroCampo('numero-end','Informe o número'); ok = false; }
+  if (e.cidade.trim().length < 2) { mostrarErroCampo('cidade','Informe a cidade'); ok = false; }
+  if (e.uf.trim().length !== 2) { mostrarErroCampo('uf','UF inválida'); ok = false; }
+
   return ok;
 }
 
@@ -609,6 +705,7 @@ $('#btn-cartao').addEventListener('click', async () => {
         /* Com token, o cartão nem sai daqui. Sem token (modo direto), os
            campos seguem para a nossa API — e só nesse caso. */
         ...(token ? { tokenCartao: token } : { cartao: dadosCartao }),
+        endereco: dadosEndereco(),
         parcelas: Number($('#parcelas').value)
       })
     });
