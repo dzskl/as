@@ -94,6 +94,35 @@
 <footer>
   <div class="wrap">© <span id="ano"></span> SUA EMPRESA LTDA — CNPJ 00.000.000/0001-00</div>
 </footer>
-<script>document.getElementById('ano').textContent=new Date().getFullYear();</script>
+<script>
+document.getElementById('ano').textContent=new Date().getFullYear();
+
+/* Se o cliente chegou pelo checkout próprio, confirmamos o pagamento com o
+   servidor antes de dizer "compra confirmada". Alguém pode abrir esta URL
+   direto — e ver "confirmado" sem ter pago seria pior do que um aviso.
+   Se o site estiver hospedado sem as funções de /api, nada acontece e a
+   página segue como está. */
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const pedido = params.get('pedido');
+  if (!pedido) return;
+
+  try {
+    const r = await fetch('/api/status?pedido=' + encodeURIComponent(pedido));
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d.status === 'pago') return;   // tudo certo, mantém a página
+
+    const caixa = document.querySelector('.topo-ok');
+    caixa.querySelector('h1').textContent = 'Pagamento ainda não confirmado';
+    caixa.querySelector('.circulo').textContent = '⏳';
+    caixa.querySelector('p').innerHTML =
+      'Seu pedido está com status <strong>' + d.status + '</strong>. ' +
+      'Se você pagou agora, aguarde alguns instantes e recarregue a página — ' +
+      'a confirmação costuma levar poucos segundos. Se o problema continuar, ' +
+      'fale com o suporte no Telegram.';
+  } catch { /* sem API disponível: mantém a página estática */ }
+})();
+</script>
 </body>
 </html>

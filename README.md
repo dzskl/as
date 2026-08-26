@@ -14,6 +14,7 @@ HTML e CSS puros: sem build, sem framework, sem dependência. É só subir os ar
 | `estilo-paginas.css` | Estilo compartilhado das três páginas internas |
 | `capa.png` | Imagem 1200×630 que aparece ao compartilhar o link |
 | `vercel.json` | Configuração de deploy (URLs limpas, cache e headers) |
+| `checkout.html` + `api/` | Checkout próprio com Pix e cartão (ver seção abaixo) |
 
 ## Antes de publicar — o mínimo obrigatório
 
@@ -92,6 +93,89 @@ Rode dentro da pasta do projeto; o `npx` pede login na primeira vez.
 
 Depois de publicar, troque `https://seudominio.com.br/` nas tags `og:url` e `canonical` do `index.html`
 pelo endereço real — é o que faz o preview do link aparecer certo no WhatsApp e no Telegram.
+
+## Checkout próprio (Pix + cartão)
+
+O projeto tem checkout próprio, sem plataforma intermediária: `checkout.html` no navegador e
+funções serverless em `/api` rodando na mesma Vercel.
+
+```
+checkout.html          formulário, tela do Pix e tela de sucesso
+api/produto.js         GET  — nome, preço e parcelamento (a fonte da verdade)
+api/criar-pagamento.js POST — cria o pedido e a cobrança no gateway
+api/status.js          GET  — a tela do Pix consulta se o pagamento caiu
+api/webhook.js         POST — o gateway avisa o pagamento; aqui o acesso é liberado
+api/_gateway.js        ADAPTADOR — o único arquivo que muda ao trocar de gateway
+api/_entrega.js        gancho da entrega (e-mail, convite no Telegram, cadastro)
+api/_pedidos.js        armazenamento (Vercel KV/Upstash, ou memória em dev)
+api/_validacao.js      CPF com dígito verificador, e-mail, telefone
+testes/fluxo.test.js   17 testes de ponta a ponta
+```
+
+### Rodar e testar localmente
+
+```bash
+npm run dev      # http://localhost:3000/checkout.html
+npm run teste    # 17 testes de ponta a ponta
+```
+
+Sem credencial nenhuma o checkout já funciona em **modo simulado**: gera um Pix falso (com
+"SIMULADO" escrito no QR, impossível de pagar por engano), mostra um botão "simular pagamento
+aprovado" que dispara o mesmo webhook que o gateway dispararia, e leva até a página de obrigado.
+Dá para testar o fluxo inteiro antes de ter conta em qualquer gateway.
+
+No cartão em modo simulado: número terminado em `0000` simula recusa, qualquer outro aprova.
+
+### Ligar a FreePay
+
+⚠️ **A documentação pública da FreePay não está disponível** — o mapeamento em `api/_gateway.js`
+segue o padrão mais comum entre sub-adquirentes brasileiros (`POST /transactions`, auth Basic),
+mas **não foi verificado contra as docs oficiais**. Peça as docs ao suporte deles e confirme
+quatro pontos, todos configuráveis por variável de ambiente:
+
+1. `FREEPAY_URL_BASE` — a URL base da API
+2. `FREEPAY_AUTH` — `basic` ou `bearer`
+3. os nomes dos campos do POST (funções `montarCorpoPix` / `montarCorpoCartao`)
+4. `FREEPAY_WEBHOOK_HEADER` e o algoritmo da assinatura do webhook
+
+Depois preencha as variáveis (veja `.env.example`) e troque `GATEWAY_MODO` para `freepay`.
+Configure a URL do webhook no painel da FreePay como `https://seudominio.com.br/api/webhook`.
+
+**O cartão precisa de um passo a mais:** o número do cartão não pode chegar ao nosso servidor —
+isso jogaria o projeto no escopo pesado do PCI-DSS. O certo é o SDK do gateway transformar os
+dados em token no próprio navegador. A função `tokenizarCartao()` em `checkout.html` já está
+preparada para chamar `window.FreePay.createToken()`; falta carregar o script deles e confirmar
+a assinatura do método. Enquanto isso não existir, o cartão avisa o cliente e o Pix funciona
+normalmente.
+
+### Armazenamento dos pedidos
+
+Funções serverless não guardam estado: sem banco, o webhook não encontra o pedido criado pelo
+checkout. Em produção, crie um Redis na Vercel (*Storage → KV*) e as variáveis `KV_REST_API_URL`
+e `KV_REST_API_TOKEN` aparecem sozinhas no projeto. Sem elas o sistema usa memória — bom para
+desenvolvimento, inaceitável em produção.
+
+### O que já está protegido
+
+- **preço vem do servidor** (`api/_config.js`): mandar `valorCentavos: 1` no corpo não muda nada;
+- **webhook falha fechada**: sem segredo configurado, nenhum evento é aceito — senão qualquer
+  pessoa com a URL liberaria acesso de graça;
+- **idempotência**: evento repetido não entrega o produto duas vezes, e pedido pago não volta
+  para pendente por evento fora de ordem;
+- **dados revalidados no servidor**, incluindo os dígitos verificadores do CPF;
+- **rede de segurança**: se o webhook não chegar, a tela do Pix pergunta o status direto ao
+  gateway, para ninguém pagar e ficar preso esperando;
+- **limite por IP** nas rotas de criação de pagamento;
+- **erros genéricos para o cliente**, detalhe técnico só no log.
+
+### Antes de vender de verdade
+
+- [ ] `SEGREDO_APP` com valor aleatório próprio
+- [ ] `FREEPAY_WEBHOOK_SEGREDO` configurado e webhook apontado no painel do gateway
+- [ ] Vercel KV criado (senão os pedidos somem entre uma função e outra)
+- [ ] entrega real implementada em `api/_entrega.js` (e-mail e/ou convite no Telegram)
+- [ ] uma compra de teste ponta a ponta em produção, com valor baixo, e um estorno
+- [ ] `GATEWAY_MODO=freepay` (o modo simulado nunca deve ir para produção)
 
 ## Estrutura da página
 

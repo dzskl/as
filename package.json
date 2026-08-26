@@ -1,0 +1,12 @@
+{
+  "name": "bot24h-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Página de vendas + checkout próprio do Bot 24h",
+  "scripts": {
+    "dev": "node testes/servidor-local.js",
+    "teste": "node testes/fluxo.test.js"
+  },
+  "engines": { "node": ">=20" }
+}

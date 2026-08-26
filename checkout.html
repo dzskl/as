@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Checkout seguro — Bot 24h</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#0a141d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232aabee'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --azul:#2aabee;--azul-2:#1c8fd0;--verde:#22c55e;--vermelho:#f87171;
+  --bg:#0a141d;--card:#12212e;--campo:#0d1b26;--linha:rgba(255,255,255,.11);
+  --txt:#eaf2f8;--txt-2:#93a6b5;
+  --fonte:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+/* O atributo hidden precisa vencer as regras de display (grid/flex) dos
+   blocos, senão a etapa "escondida" continua aparecendo na tela. */
+[hidden]{display:none!important}
+body{font-family:var(--fonte);background:var(--bg);color:var(--txt);line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--azul)}
+img{max-width:100%;display:block}
+
+header{border-bottom:1px solid var(--linha);background:rgba(10,20,29,.9)}
+.nav{max-width:1000px;margin:0 auto;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--txt);text-decoration:none}
+.logo-icone{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--azul),var(--azul-2));display:grid;place-items:center}
+.seguro{font-size:.82rem;color:var(--txt-2);display:flex;align-items:center;gap:7px}
+
+main{max-width:1000px;margin:0 auto;padding:36px 20px 70px}
+.colunas{display:grid;grid-template-columns:1.25fr .75fr;gap:28px;align-items:start}
+@media(max-width:860px){.colunas{grid-template-columns:1fr}.resumo{order:-1}}
+
+.bloco{background:var(--card);border:1px solid var(--linha);border-radius:16px;padding:26px}
+.bloco+.bloco{margin-top:20px}
+h1{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin-bottom:6px}
+h2{font-size:1.05rem;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.passo-num{width:26px;height:26px;border-radius:50%;background:rgba(42,171,238,.16);color:var(--azul);
+ display:grid;place-items:center;font-size:.8rem;font-weight:800;flex:0 0 26px}
+p.ajuda{color:var(--txt-2);font-size:.88rem}
+
+/* ----- Campos ----- */
+.linha-campos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.linha-campos{grid-template-columns:1fr}}
+.campo{margin-bottom:14px}
+label{display:block;font-size:.86rem;font-weight:600;margin-bottom:6px}
+input,select{
+  width:100%;padding:13px 14px;border-radius:10px;background:var(--campo);
+  border:1px solid var(--linha);color:var(--txt);font-family:inherit;font-size:1rem;
+  transition:border-color .15s,box-shadow .15s;
+}
+input:focus,select:focus{outline:0;border-color:var(--azul);box-shadow:0 0 0 3px rgba(42,171,238,.18)}
+input::placeholder{color:#5f7385}
+input[aria-invalid="true"]{border-color:var(--vermelho)}
+.erro-campo{color:var(--vermelho);font-size:.8rem;margin-top:5px;display:none}
+.erro-campo.visivel{display:block}
+
+/* ----- Abas de pagamento ----- */
+.abas{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.aba{
+  padding:14px;border-radius:12px;border:1px solid var(--linha);background:var(--campo);
+  color:var(--txt-2);font-weight:600;font-size:.95rem;cursor:pointer;display:flex;
+  align-items:center;justify-content:center;gap:9px;font-family:inherit;transition:.15s;
+}
+.aba:hover{border-color:rgba(42,171,238,.45)}
+.aba[aria-selected="true"]{border-color:var(--azul);background:rgba(42,171,238,.12);color:var(--txt)}
+.painel[hidden]{display:none}
+
+/* ----- Botão ----- */
+.btn{
+  width:100%;padding:17px;border-radius:999px;border:0;cursor:pointer;font-family:inherit;
+  font-weight:800;font-size:1.05rem;background:linear-gradient(135deg,var(--verde),#16a34a);
+  color:#052e13;box-shadow:0 12px 30px -12px rgba(34,197,94,.7);transition:transform .15s,filter .15s;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn:hover:not(:disabled){transform:translateY(-1px)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn-secundario{background:rgba(255,255,255,.08);color:var(--txt);box-shadow:none;font-weight:600;font-size:.92rem;padding:13px}
+.girando{width:17px;height:17px;border:2px solid rgba(5,46,19,.35);border-top-color:#052e13;border-radius:50%;animation:gira .7s linear infinite}
+@keyframes gira{to{transform:rotate(360deg)}}
+
+/* ----- Resumo ----- */
+.resumo{position:sticky;top:20px}
+.item{display:flex;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--linha);font-size:.93rem}
+.item>span{white-space:nowrap}
+.item:last-of-type{border-bottom:0}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;padding-top:16px;border-top:1px solid var(--linha)}
+.total b{font-size:1.7rem;font-weight:900;letter-spacing:-.02em}
+.selos{margin-top:20px;display:flex;flex-direction:column;gap:9px;font-size:.83rem;color:var(--txt-2)}
+.selos span{display:flex;gap:9px;align-items:flex-start}
+
+/* ----- Pix ----- */
+.pix{text-align:center}
+.qr{width:230px;height:230px;margin:0 auto 20px;background:#fff;border-radius:14px;padding:10px}
+.copia{
+  display:flex;gap:8px;margin:16px 0 10px;
+}
+.copia input{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.78rem}
+.copia button{
+  flex:0 0 auto;padding:0 18px;border-radius:10px;border:1px solid var(--azul);
+  background:rgba(42,171,238,.15);color:var(--azul);font-weight:700;cursor:pointer;font-family:inherit;
+}
+.relogio{font-variant-numeric:tabular-nums;font-weight:700;color:var(--txt)}
+.esperando{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:18px;font-size:.9rem;color:var(--txt-2)}
+.ponto{width:9px;height:9px;border-radius:50%;background:var(--verde);animation:pisca 1.3s infinite}
+@keyframes pisca{50%{opacity:.25}}
+
+/* ----- Avisos ----- */
+.aviso{border-radius:12px;padding:14px 16px;font-size:.88rem;margin-bottom:18px;display:none}
+.aviso.visivel{display:block}
+.aviso.erro{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);color:#fca5a5}
+.aviso.info{background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.35);color:#fbbf24}
+.sucesso{text-align:center;padding:20px 0}
+.sucesso .circulo{width:76px;height:76px;border-radius:50%;margin:0 auto 20px;display:grid;place-items:center;
+ background:rgba(34,197,94,.14);border:2px solid rgba(34,197,94,.5);font-size:2rem}
+footer{border-top:1px solid var(--linha);padding:26px 20px;text-align:center;font-size:.82rem;color:var(--txt-2)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a href="index.html" class="logo">
+      <span class="logo-icone"><svg width="18" height="18" viewBox="0 0 24 24" fill="#04202f"><path d="M21.9 4.3 18.7 19.4c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.3 13.2 1.4 11.7c-1.1-.3-1.1-1 .2-1.5l19-7.3c.9-.3 1.6.2 1.3 1.4z"/></svg></span>
+      Bot 24h
+    </a>
+    <span class="seguro">🔒 Ambiente seguro</span>
+  </div>
+</header>
+
+<main>
+  <div class="aviso info" id="aviso-simulado">
+    <strong>Modo de teste.</strong> O gateway não está configurado, então nenhum pagamento real acontece.
+    Use este modo para testar o fluxo inteiro antes de plugar a FreePay.
+  </div>
+
+  <div class="colunas">
+    <!-- ============ COLUNA ESQUERDA: FORMULÁRIO ============ -->
+    <div>
+      <div class="bloco" id="etapa-dados">
+        <h1>Finalize sua compra</h1>
+        <p class="ajuda" style="margin-bottom:22px">Leva menos de um minuto. Seu acesso é liberado assim que o pagamento é confirmado.</p>
+
+        <div class="aviso erro" id="aviso-erro"></div>
+
+        <h2><span class="passo-num">1</span> Seus dados</h2>
+        <form id="form-dados" novalidate>
+          <div class="campo">
+            <label for="nome">Nome completo</label>
+            <input id="nome" name="nome" autocomplete="name" placeholder="Maria da Silva" required>
+            <div class="erro-campo" id="erro-nome"></div>
+          </div>
+          <div class="linha-campos">
+            <div class="campo">
+              <label for="email">E-mail</label>
+              <input id="email" name="email" type="email" inputmode="email" autocomplete="email" placeholder="voce@email.com" required>
+              <div class="erro-campo" id="erro-email"></div>
+            </div>
+            <div class="campo">
+              <label for="telefone">Celular com DDD</label>
+              <input id="telefone" name="telefone" inputmode="numeric" autocomplete="tel" placeholder="(11) 99999-9999" required>
+              <div class="erro-campo" id="erro-telefone"></div>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="cpf">CPF</label>
+            <input id="cpf" name="cpf" inputmode="numeric" placeholder="000.000.000-00" required>
+            <div class="erro-campo" id="erro-cpf"></div>
+            <p class="ajuda" style="margin-top:6px">Obrigatório para emitir a nota fiscal e liberar o acesso.</p>
+          </div>
+        </form>
+
+        <h2 style="margin-top:28px"><span class="passo-num">2</span> Forma de pagamento</h2>
+        <div class="abas" role="tablist">
+          <button class="aba" id="aba-pix" role="tab" aria-selected="true" aria-controls="painel-pix" type="button">⚡ Pix</button>
+          <button class="aba" id="aba-cartao" role="tab" aria-selected="false" aria-controls="painel-cartao" type="button">💳 Cartão</button>
+        </div>
+
+        <!-- Pix -->
+        <div class="painel" id="painel-pix" role="tabpanel">
+          <p class="ajuda" style="margin-bottom:18px">
+            Você recebe o QR Code na tela. O acesso é liberado automaticamente assim que o Pix cai —
+            normalmente em poucos segundos.
+          </p>
+          <button class="btn" id="btn-pix" type="button">Gerar Pix de R$&nbsp;<span data-valor>—</span></button>
+        </div>
+
+        <!-- Cartão -->
+        <div class="painel" id="painel-cartao" role="tabpanel" hidden>
+          <div class="campo">
+            <label for="numero">Número do cartão</label>
+            <input id="numero" inputmode="numeric" autocomplete="cc-number" placeholder="0000 0000 0000 0000">
+            <div class="erro-campo" id="erro-numero"></div>
+          </div>
+          <div class="campo">
+            <label for="titular">Nome impresso no cartão</label>
+            <input id="titular" autocomplete="cc-name" placeholder="MARIA DA SILVA">
+            <div class="erro-campo" id="erro-titular"></div>
+          </div>
+          <div class="linha-campos">
+            <div class="campo">
+              <label for="validade">Validade</label>
+              <input id="validade" inputmode="numeric" autocomplete="cc-exp" placeholder="MM/AA">
+              <div class="erro-campo" id="erro-validade"></div>
+            </div>
+            <div class="campo">
+              <label for="cvv">CVV</label>
+              <input id="cvv" inputmode="numeric" autocomplete="cc-csc" placeholder="123">
+              <div class="erro-campo" id="erro-cvv"></div>
+            </div>
+          </div>
+          <div class="campo">
+            <label for="parcelas">Parcelamento</label>
+            <select id="parcelas"></select>
+          </div>
+          <button class="btn" id="btn-cartao" type="button">Pagar com cartão</button>
+          <p class="ajuda" style="margin-top:12px;text-align:center">
+            🔒 Os dados do cartão são enviados criptografados direto ao processador de pagamento.
+            Este site não armazena o número do seu cartão.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ COLUNA DIREITA: RESUMO ============ -->
+    <div class="resumo">
+      <div class="bloco">
+        <h2 style="margin-bottom:14px">Resumo do pedido</h2>
+        <div class="item">
+          <div>
+            <strong id="produto-nome">Carregando…</strong>
+            <div class="ajuda" id="produto-descricao"></div>
+          </div>
+          <span>R$&nbsp;<span data-valor>—</span></span>
+        </div>
+        <div class="total">
+          <span>Total</span>
+          <b>R$&nbsp;<span data-valor>—</span></b>
+        </div>
+        <div class="selos">
+          <span>✅ Pagamento único, sem mensalidade</span>
+          <span>✅ Acesso vitalício e atualizações inclusas</span>
+          <span>🛡️ 7 dias de garantia — devolução integral</span>
+          <span>🔒 Conexão criptografada</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TELA DO PIX (aparece depois de gerar) ============ -->
+  <div class="bloco pix" id="etapa-pix" hidden style="max-width:520px;margin:0 auto">
+    <h2 style="justify-content:center">Pague com Pix para liberar o acesso</h2>
+    <img class="qr" id="pix-qr" alt="QR Code do Pix" width="230" height="230">
+    <p class="ajuda">Abra o app do seu banco, escolha <strong>Pix &gt; Ler QR Code</strong> e aponte para a imagem.
+    Ou use o código copia e cola:</p>
+    <div class="copia">
+      <input id="pix-texto" readonly aria-label="Código Pix copia e cola">
+      <button type="button" id="btn-copiar">Copiar</button>
+    </div>
+    <p class="ajuda">Este código expira em <span class="relogio" id="relogio">60:00</span></p>
+    <div class="esperando"><span class="ponto"></span> Aguardando a confirmação do pagamento…</div>
+    <button class="btn btn-secundario" id="btn-simular" type="button" hidden style="margin-top:22px">
+      ▶︎ Simular pagamento aprovado (modo de teste)
+    </button>
+    <button class="btn btn-secundario" id="btn-voltar" type="button" style="margin-top:10px">← Escolher outra forma de pagamento</button>
+  </div>
+
+  <!-- ============ SUCESSO ============ -->
+  <div class="bloco sucesso" id="etapa-ok" hidden style="max-width:520px;margin:0 auto">
+    <div class="circulo">✅</div>
+    <h2 style="justify-content:center">Pagamento confirmado!</h2>
+    <p class="ajuda">Estamos liberando seu acesso. Você será redirecionado em instantes…</p>
+  </div>
+</main>
+
+<footer>
+  Bot 24h · <a href="termos.html">Termos</a> · <a href="privacidade.html">Privacidade</a>
+</footer>
+
+<script type="module">
+/* =========================================================================
+   Checkout — front-end
+   O navegador NUNCA decide preço nem status: só coleta dados, chama a API e
+   mostra o que o servidor respondeu.
+   ========================================================================= */
+
+const $ = (s) => document.querySelector(s);
+const PRODUTO_ID = 'bot-24h';
+let modoSimulado = false;
+let pedidoAtual = null;
+let poll = null;
+let cronometro = null;
+
+/* ------------------------------------------------------- máscaras de campo */
+const mascaras = {
+  cpf: (v) => v.replace(/\D/g,'').slice(0,11)
+    .replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})(\d{1,2})$/,'$1-$2'),
+  telefone: (v) => {
+    const d = v.replace(/\D/g,'').slice(0,11);
+    if (d.length <= 10) return d.replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{4})(\d)/,'$1-$2');
+    return d.replace(/(\d{2})(\d)/,'($1) $2').replace(/(\d{5})(\d)/,'$1-$2');
+  },
+  numero: (v) => v.replace(/\D/g,'').slice(0,19).replace(/(\d{4})(?=\d)/g,'$1 '),
+  validade: (v) => v.replace(/\D/g,'').slice(0,4).replace(/(\d{2})(\d)/,'$1/$2'),
+  cvv: (v) => v.replace(/\D/g,'').slice(0,4)
+};
+for (const [id, fn] of Object.entries(mascaras)) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', () => { el.value = fn(el.value); });
+}
+
+/* ------------------------------------------------------------- utilidades */
+function mostrarErroCampo(campo, mensagem) {
+  const input = document.getElementById(campo);
+  const alvo = document.getElementById('erro-' + campo);
+  if (input) input.setAttribute('aria-invalid', mensagem ? 'true' : 'false');
+  if (alvo) { alvo.textContent = mensagem || ''; alvo.classList.toggle('visivel', !!mensagem); }
+}
+function limparErros() {
+  document.querySelectorAll('.erro-campo').forEach(e => { e.textContent=''; e.classList.remove('visivel'); });
+  document.querySelectorAll('[aria-invalid="true"]').forEach(e => e.setAttribute('aria-invalid','false'));
+  $('#aviso-erro').classList.remove('visivel');
+}
+function avisarErro(mensagem) {
+  const el = $('#aviso-erro');
+  el.textContent = mensagem;
+  el.classList.add('visivel');
+  el.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+function ocupado(botao, sim, textoOriginal) {
+  botao.disabled = sim;
+  botao.innerHTML = sim ? '<span class="girando"></span> Processando…' : textoOriginal;
+}
+function dadosCliente() {
+  return {
+    nome: $('#nome').value,
+    email: $('#email').value,
+    cpf: $('#cpf').value,
+    telefone: $('#telefone').value
+  };
+}
+
+/* ----------------------------------------------------- carregar o produto */
+async function carregarProduto() {
+  try {
+    const r = await fetch(`/api/produto?id=${PRODUTO_ID}`);
+    const d = await r.json();
+    if (!d.ok) throw new Error(d.erro || 'Falha ao carregar o produto');
+
+    modoSimulado = !!d.modoSimulado;
+    $('#aviso-simulado').classList.toggle('visivel', modoSimulado);
+    $('#produto-nome').textContent = d.produto.nome;
+    $('#produto-descricao').textContent = d.produto.descricao;
+    document.querySelectorAll('[data-valor]').forEach(el => el.textContent = d.produto.valorFormatado);
+
+    $('#parcelas').innerHTML = d.produto.parcelamento
+      .map(p => `<option value="${p.parcelas}">${p.rotulo}</option>`).join('');
+  } catch (e) {
+    avisarErro('Não conseguimos carregar os dados da compra. Recarregue a página.');
+    console.error(e);
+  }
+}
+
+/* ------------------------------------------------------------------- abas */
+function trocarAba(destino) {
+  const pix = destino === 'pix';
+  $('#aba-pix').setAttribute('aria-selected', String(pix));
+  $('#aba-cartao').setAttribute('aria-selected', String(!pix));
+  $('#painel-pix').hidden = !pix;
+  $('#painel-cartao').hidden = pix;
+}
+$('#aba-pix').addEventListener('click', () => trocarAba('pix'));
+$('#aba-cartao').addEventListener('click', () => trocarAba('cartao'));
+
+/* -------------------------------------------------------------- chamada API */
+async function chamar(caminho, opcoes) {
+  const r = await fetch(caminho, opcoes);
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 422 && d.campos) {
+    Object.entries(d.campos).forEach(([campo, msg]) => mostrarErroCampo(campo, msg));
+    throw new Error(d.erro || 'Confira os dados informados');
+  }
+  if (!r.ok && !d.erro) throw new Error('Erro inesperado. Tente novamente.');
+  return d;
+}
+
+/* ------------------------------------------------------------------- Pix */
+$('#btn-pix').addEventListener('click', async () => {
+  limparErros();
+  const botao = $('#btn-pix');
+  const original = botao.innerHTML;
+  ocupado(botao, true, original);
+  try {
+    const d = await chamar('/api/criar-pagamento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ produtoId: PRODUTO_ID, metodo: 'pix', cliente: dadosCliente() })
+    });
+    if (!d.ok) throw new Error(d.erro || 'Não foi possível gerar o Pix');
+
+    pedidoAtual = d.pedidoId;
+    $('#pix-qr').src = d.pix.imagem || '';
+    $('#pix-qr').hidden = !d.pix.imagem;
+    $('#pix-texto').value = d.pix.texto || '';
+    $('#etapa-dados').closest('.colunas').hidden = true;
+    $('#etapa-pix').hidden = false;
+    $('#btn-simular').hidden = !d.modoSimulado;
+    iniciarRelogio(d.pix.expiraEm);
+    iniciarPolling();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) {
+    avisarErro(e.message);
+  } finally {
+    ocupado(botao, false, original);
+  }
+});
+
+$('#btn-copiar').addEventListener('click', async () => {
+  const botao = $('#btn-copiar');
+  try {
+    await navigator.clipboard.writeText($('#pix-texto').value);
+    botao.textContent = 'Copiado!';
+  } catch {
+    /* clipboard bloqueado (http, permissão): seleciona para o usuário copiar */
+    $('#pix-texto').select();
+    botao.textContent = 'Selecionado';
+  }
+  setTimeout(() => botao.textContent = 'Copiar', 2200);
+});
+
+$('#btn-voltar').addEventListener('click', () => {
+  clearInterval(poll); clearInterval(cronometro);
+  $('#etapa-pix').hidden = true;
+  document.querySelector('.colunas').hidden = false;
+});
+
+function iniciarRelogio(expiraEm) {
+  clearInterval(cronometro);
+  const fim = expiraEm ? new Date(expiraEm).getTime() : Date.now() + 3600e3;
+  const tick = () => {
+    const resta = Math.max(0, fim - Date.now());
+    const m = String(Math.floor(resta / 60000)).padStart(2, '0');
+    const s = String(Math.floor(resta % 60000 / 1000)).padStart(2, '0');
+    $('#relogio').textContent = `${m}:${s}`;
+    if (resta <= 0) { clearInterval(cronometro); clearInterval(poll); }
+  };
+  tick();
+  cronometro = setInterval(tick, 1000);
+}
+
+function iniciarPolling() {
+  clearInterval(poll);
+  poll = setInterval(async () => {
+    if (!pedidoAtual) return;
+    try {
+      const r = await fetch(`/api/status?pedido=${encodeURIComponent(pedidoAtual)}`);
+      const d = await r.json();
+      if (d.ok && d.status === 'pago') {
+        clearInterval(poll); clearInterval(cronometro);
+        concluir(d.urlAcesso);
+      }
+    } catch { /* rede oscilou: tenta de novo no próximo ciclo */ }
+  }, 4000);
+}
+
+/* Botão só existente em modo de teste: dispara o mesmo webhook que o
+   gateway dispararia. */
+$('#btn-simular').addEventListener('click', async () => {
+  await fetch('/api/webhook', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reference_id: pedidoAtual, status: 'paid' })
+  });
+});
+
+/* ---------------------------------------------------------------- Cartão */
+/* ⚠️ TOKENIZAÇÃO — ponto que precisa da documentação da FreePay.
+   O número do cartão não pode chegar ao nosso servidor: isso jogaria o
+   projeto inteiro no escopo pesado do PCI-DSS. O caminho correto é o SDK do
+   gateway transformar os dados em um token aqui no navegador, e só o token
+   ir para a nossa API.
+   Quando você tiver o SDK da FreePay, carregue o script deles no <head> e
+   implemente a chamada dentro desta função. */
+async function tokenizarCartao(dados) {
+  if (window.FreePay && typeof window.FreePay.createToken === 'function') {
+    const { token } = await window.FreePay.createToken(dados);
+    return token;
+  }
+  if (modoSimulado) {
+    /* Em teste: cartão terminado em 0000 simula recusa, qualquer outro aprova. */
+    return dados.numero.replace(/\D/g,'').endsWith('0000') ? 'tok_teste_recusa' : 'tok_teste_ok';
+  }
+  throw new Error('O processador de cartão ainda não está configurado neste site. Use o Pix.');
+}
+
+function validarCartaoLocalmente() {
+  let ok = true;
+  const numero = $('#numero').value.replace(/\D/g,'');
+  const validade = $('#validade').value;
+  const cvv = $('#cvv').value;
+
+  if (numero.length < 13 || !luhn(numero)) { mostrarErroCampo('numero','Número de cartão inválido'); ok = false; }
+  if ($('#titular').value.trim().length < 3) { mostrarErroCampo('titular','Informe o nome do titular'); ok = false; }
+  if (!/^\d{2}\/\d{2}$/.test(validade) || !validadeFutura(validade)) {
+    mostrarErroCampo('validade','Validade inválida'); ok = false;
+  }
+  if (cvv.length < 3) { mostrarErroCampo('cvv','CVV inválido'); ok = false; }
+  return ok;
+}
+
+/* Algoritmo de Luhn: pega erro de digitação antes de gastar uma tentativa
+   no gateway (e antes de o antifraude marcar o cliente). */
+function luhn(numero) {
+  let soma = 0, alternar = false;
+  for (let i = numero.length - 1; i >= 0; i--) {
+    let d = Number(numero[i]);
+    if (alternar) { d *= 2; if (d > 9) d -= 9; }
+    soma += d; alternar = !alternar;
+  }
+  return soma % 10 === 0;
+}
+function validadeFutura(mmaa) {
+  const [m, a] = mmaa.split('/').map(Number);
+  if (m < 1 || m > 12) return false;
+  const fim = new Date(2000 + a, m, 0, 23, 59, 59);
+  return fim >= new Date();
+}
+
+$('#btn-cartao').addEventListener('click', async () => {
+  limparErros();
+  if (!validarCartaoLocalmente()) return;
+
+  const botao = $('#btn-cartao');
+  const original = botao.innerHTML;
+  ocupado(botao, true, original);
+  try {
+    const token = await tokenizarCartao({
+      numero: $('#numero').value.replace(/\D/g,''),
+      titular: $('#titular').value.trim(),
+      validade: $('#validade').value,
+      cvv: $('#cvv').value
+    });
+
+    const d = await chamar('/api/criar-pagamento', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        produtoId: PRODUTO_ID,
+        metodo: 'cartao',
+        cliente: dadosCliente(),
+        tokenCartao: token,
+        parcelas: Number($('#parcelas').value)
+      })
+    });
+
+    if (!d.ok) throw new Error(d.erro || 'Pagamento não aprovado');
+    concluir(d.urlAcesso);
+  } catch (e) {
+    avisarErro(e.message);
+  } finally {
+    ocupado(botao, false, original);
+  }
+});
+
+/* ------------------------------------------------------------- conclusão */
+function concluir(urlAcesso) {
+  document.querySelector('.colunas').hidden = true;
+  $('#etapa-pix').hidden = true;
+  $('#etapa-ok').hidden = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => { window.location.href = urlAcesso || 'obrigado.html'; }, 1600);
+}
+
+carregarProduto();
+</script>
+</body>
+</html>

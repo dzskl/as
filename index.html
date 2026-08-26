@@ -719,12 +719,13 @@ if ('IntersectionObserver' in window) {
 }
 
 /* =========================================================
-   ⬇️ ÚNICO CAMPO OBRIGATÓRIO ANTES DE PUBLICAR ⬇️
-   Cole aqui o link do seu checkout (Kiwify, Hotmart, Cakto,
-   Mercado Pago...). Todos os botões de compra da página
-   passam a apontar para ele automaticamente.
+   Destino dos botões de compra.
+   Hoje aponta para o checkout próprio deste mesmo projeto
+   (checkout.html + funções em /api). Se um dia você voltar a
+   usar plataforma externa (Kiwify, Hotmart...), basta trocar
+   esta URL.
    ========================================================= */
-var LINK_CHECKOUT = '';
+var LINK_CHECKOUT = '/checkout.html';
 
 if (LINK_CHECKOUT) {
   document.querySelectorAll('[data-checkout]').forEach(function(a){
