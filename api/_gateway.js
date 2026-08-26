@@ -30,7 +30,7 @@
    ========================================================================= */
 
 import crypto from 'node:crypto';
-import { CONFIG } from './_config.js';
+import { CONFIG, ligado } from './_config.js';
 
 /* Status normalizados usados por todo o sistema. Cada gateway tem os seus
    nomes; traduzimos tudo para estes cinco. */
@@ -154,7 +154,7 @@ function montarCliente(cliente) {
    FREEPAY_METADATA_TEXTO=1 e ele vai serializado como string JSON. */
 function montarMetadata(pedido, produto) {
   const dados = { pedido_id: pedido.id, produto: produto.id ?? produto.nome };
-  return env('FREEPAY_METADATA_TEXTO') === '1' ? JSON.stringify(dados) : dados;
+  return ligado(env('FREEPAY_METADATA_TEXTO')) ? JSON.stringify(dados) : dados;
 }
 
 /* Corpo do POST — nomes dos campos ajustados conforme a validação da API. */

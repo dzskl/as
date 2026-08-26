@@ -36,6 +36,14 @@ export function opcoesParcelamento(produto) {
   return opcoes;
 }
 
+/* Aceita as formas que uma pessoa naturalmente digita num painel de variáveis
+   de ambiente: 1, true, sim, yes, on — com ou sem espaço, maiúscula ou não.
+   Comparar com '1' cru já custou horas de gente achando que a variável não
+   tinha sido aplicada. */
+export function ligado(valor) {
+  return ['1', 'true', 'sim', 'yes', 'on'].includes(String(valor ?? '').trim().toLowerCase());
+}
+
 export const CONFIG = {
   /* 'simulado' permite testar o fluxo inteiro sem credencial de gateway.
      Em produção use GATEWAY_MODO=freepay. */
@@ -50,7 +58,7 @@ export const CONFIG = {
      gateway costuma dizer exatamente o que falta.
      DESLIGUE depois de integrar: mensagens internas não devem aparecer para
      o cliente final. */
-  diagnostico: process.env.DIAGNOSTICO === '1',
+  diagnostico: ligado(process.env.DIAGNOSTICO),
 
   /* CARTAO_DIRETO=1 faz o número do cartão passar pelo NOSSO servidor a
      caminho do gateway, em vez de ser tokenizado no navegador.
@@ -63,7 +71,7 @@ export const CONFIG = {
      Use isto apenas se a FreePay não oferecer endpoint de tokenização, e
      saiba o que está assumindo. O número nunca é gravado nem registrado em
      log aqui, mas ele transita. */
-  cartaoDireto: process.env.CARTAO_DIRETO === '1',
+  cartaoDireto: ligado(process.env.CARTAO_DIRETO),
 
   /* URL de tokenização do gateway, se existir. Quando preenchida, o
      navegador troca o cartão por um token direto com o gateway e o servidor
