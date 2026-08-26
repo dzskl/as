@@ -22,6 +22,8 @@ async function teste(nome, fn) {
 }
 
 const cliente = { nome:'Maria da Silva', email:'maria@exemplo.com', cpf:'529.982.247-25', telefone:'(11) 99999-8888' };
+/* Cartão exige endereço de cobrança; Pix não. */
+const endereco = { cep:'01310-100', rua:'Av. Paulista', numero:'1000', bairro:'Bela Vista', cidade:'São Paulo', uf:'SP' };
 const post = (caminho, corpo) => fetch(base + caminho, {
   method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(corpo)
 });
@@ -127,7 +129,7 @@ await teste('webhook de pedido desconhecido responde 200 sem quebrar', async () 
 
 await teste('cartão aprovado libera o acesso na hora', async () => {
   const r = await post('/api/criar-pagamento', {
-    produtoId:'bot-24h', metodo:'cartao', cliente, tokenCartao:'tok_teste_ok', parcelas: 12
+    produtoId:'bot-24h', metodo:'cartao', cliente, endereco, tokenCartao:'tok_teste_ok', parcelas: 12
   });
   assert.equal(r.status, 201);
   const d = await r.json();
@@ -137,7 +139,7 @@ await teste('cartão aprovado libera o acesso na hora', async () => {
 
 await teste('cartão recusado devolve mensagem, não link', async () => {
   const d = await (await post('/api/criar-pagamento', {
-    produtoId:'bot-24h', metodo:'cartao', cliente, tokenCartao:'tok_teste_recusa', parcelas: 1
+    produtoId:'bot-24h', metodo:'cartao', cliente, endereco, tokenCartao:'tok_teste_recusa', parcelas: 1
   })).json();
   assert.equal(d.ok, false);
   assert.equal(d.status, 'recusado');
@@ -146,14 +148,35 @@ await teste('cartão recusado devolve mensagem, não link', async () => {
 
 await teste('parcelamento fora da tabela é recusado', async () => {
   const r = await post('/api/criar-pagamento', {
-    produtoId:'bot-24h', metodo:'cartao', cliente, tokenCartao:'tok_teste_ok', parcelas: 99
+    produtoId:'bot-24h', metodo:'cartao', cliente, endereco, tokenCartao:'tok_teste_ok', parcelas: 99
   });
   assert.equal(r.status, 422);
 });
 
 await teste('cartão sem token é recusado', async () => {
-  const r = await post('/api/criar-pagamento', { produtoId:'bot-24h', metodo:'cartao', cliente });
+  const r = await post('/api/criar-pagamento', { produtoId:'bot-24h', metodo:'cartao', cliente, endereco });
   assert.equal(r.status, 422);
+});
+
+await teste('cartão sem endereço de cobrança é recusado', async () => {
+  const r = await post('/api/criar-pagamento', {
+    produtoId:'bot-24h', metodo:'cartao', cliente, tokenCartao:'tok_teste_ok', parcelas: 1
+  });
+  assert.equal(r.status, 422);
+  assert.ok((await r.json()).campos.cep, 'esperava erro apontando o endereço');
+});
+
+await teste('endereço incompleto é recusado', async () => {
+  const r = await post('/api/criar-pagamento', {
+    produtoId:'bot-24h', metodo:'cartao', cliente, tokenCartao:'tok_teste_ok', parcelas: 1,
+    endereco: { ...endereco, cep:'123' }
+  });
+  assert.equal(r.status, 422);
+});
+
+await teste('Pix continua sem exigir endereço', async () => {
+  const r = await post('/api/criar-pagamento', { produtoId:'bot-24h', metodo:'pix', cliente });
+  assert.equal(r.status, 201);
 });
 
 /* --- Autenticação da FreePay, conforme o exemplo Node da documentação:
