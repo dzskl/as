@@ -397,6 +397,7 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
     : [configurado];
 
   const historico = [];
+  let ultimoErro = null;
   for (const formato of tentar) {
     try {
       const r = await chamarApi(caminho,
@@ -411,18 +412,29 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
       };
     } catch (e) {
       historico.push(`${formato}: HTTP ${e.statusHttp ?? '?'}`);
-      /* 4xx é resposta útil — a API leu o corpo e reclamou de algo concreto.
-         Só faz sentido seguir tentando outros arranjos enquanto for 5xx. */
-      if (!e.falhaDoGateway) {
+
+      /* Quando insistir com outro arranjo faz sentido:
+         - 5xx: a API engasgou, não chegou a validar;
+         - 400 de campo obrigatório: ela leu o corpo mas não encontrou um
+           campo, e é exatamente isso que outra grafia pode resolver.
+         Qualquer outro 4xx é uma resposta de negócio (cartão recusado, saldo,
+         antifraude) — aí insistir só gasta tentativa e irrita o emissor.
+         Nenhum destes cria cobrança, então repetir é seguro. */
+      const faltaCampo = e.statusHttp === 400 && /is required|obrigat[óo]ri/i.test(e.message);
+      if (!e.falhaDoGateway && !faltaCampo) {
         e.message += ` | formato de cartão testado: ${formato}`;
         throw e;
       }
+      ultimoErro = e;
     }
   }
 
+  /* Esgotou os arranjos. Repassamos o último erro real da API — ele nomeia o
+     campo que continua faltando, que é a informação útil aqui. */
   const erro = new Error(
-    `Nenhum formato de cartão foi aceito (todos com erro 5xx) — ${historico.join(', ')}. ` +
-    'Provável que este endpoint não aceite dados de cartão direto e exija tokenização.');
+    `Nenhum formato de cartão foi aceito — ${historico.join(', ')}. ` +
+    (ultimoErro ? `Última resposta: ${ultimoErro.message}` :
+     'Provável que este endpoint não aceite dados de cartão direto e exija tokenização.'));
   erro.falhaDoGateway = true;
   throw erro;
 }
