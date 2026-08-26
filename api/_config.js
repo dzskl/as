@@ -50,5 +50,24 @@ export const CONFIG = {
      gateway costuma dizer exatamente o que falta.
      DESLIGUE depois de integrar: mensagens internas não devem aparecer para
      o cliente final. */
-  diagnostico: process.env.DIAGNOSTICO === '1'
+  diagnostico: process.env.DIAGNOSTICO === '1',
+
+  /* CARTAO_DIRETO=1 faz o número do cartão passar pelo NOSSO servidor a
+     caminho do gateway, em vez de ser tokenizado no navegador.
+
+     ⚠️ Isso coloca este site dentro do escopo pesado do PCI-DSS (SAQ-D):
+     você passa a ser responsável por proteger dado de cartão. O caminho
+     correto é o gateway tokenizar no navegador — assim o número nunca toca
+     o seu servidor e o escopo cai para o SAQ-A.
+
+     Use isto apenas se a FreePay não oferecer endpoint de tokenização, e
+     saiba o que está assumindo. O número nunca é gravado nem registrado em
+     log aqui, mas ele transita. */
+  cartaoDireto: process.env.CARTAO_DIRETO === '1',
+
+  /* URL de tokenização do gateway, se existir. Quando preenchida, o
+     navegador troca o cartão por um token direto com o gateway e o servidor
+     só vê o token — é o caminho recomendado. */
+  urlTokenizacao: process.env.FREEPAY_TOKENIZACAO_URL || '',
+  chavePublica: process.env.FREEPAY_CHAVE_PUBLICA || ''
 };

@@ -24,6 +24,41 @@ import { json, erro, lerJson, ipDoCliente, limiteExcedido } from './_http.js';
 /* Erros de rede do fetch chegam como "fetch failed", com o motivo real
    escondido em e.cause (DNS, TLS, porta, timeout). Durante a integração,
    é justamente a causa que interessa. */
+/* Valida e normaliza os dados do cartão. Nada aqui é gravado: o objeto
+   devolvido vive apenas durante a requisição, a caminho do gateway. */
+function validarCartao(dados) {
+  if (!dados) return null;
+  const numero = String(dados.numero ?? '').replace(/\D/g, '');
+  const titular = String(dados.titular ?? '').trim().slice(0, 60);
+  const cvv = String(dados.cvv ?? '').replace(/\D/g, '');
+  const validade = String(dados.validade ?? '').replace(/\D/g, '');   // MMAA
+
+  if (numero.length < 13 || numero.length > 19 || !luhn(numero)) return null;
+  if (titular.length < 3) return null;
+  if (cvv.length < 3 || cvv.length > 4) return null;
+  if (validade.length !== 4) return null;
+
+  const mes = validade.slice(0, 2);
+  const ano = validade.slice(2);
+  if (Number(mes) < 1 || Number(mes) > 12) return null;
+  /* Vence no último instante do mês informado. */
+  if (new Date(2000 + Number(ano), Number(mes), 0, 23, 59, 59) < new Date()) return null;
+
+  return { numero, titular, cvv, mes, ano: '20' + ano };
+}
+
+/* Luhn: pega erro de digitação antes de gastar tentativa no gateway e antes
+   de o antifraude marcar o comprador. */
+function luhn(numero) {
+  let soma = 0, alternar = false;
+  for (let i = numero.length - 1; i >= 0; i--) {
+    let d = Number(numero[i]);
+    if (alternar) { d *= 2; if (d > 9) d -= 9; }
+    soma += d; alternar = !alternar;
+  }
+  return soma % 10 === 0;
+}
+
 function detalharErro(e) {
   const causa = e?.cause?.message || e?.cause?.code;
   return causa ? `${e.message} | causa: ${causa}` : String(e?.message || e);
@@ -54,11 +89,21 @@ export default async function handler(req, res) {
   const cliente = validacao.cliente;
 
   let parcelas = 1;
+  let cartao = null;
   if (metodo === 'cartao') {
-    if (!corpo.tokenCartao) return erro(res, 422, 'Dados do cartão não foram enviados corretamente');
     parcelas = Number(corpo.parcelas) || 1;
     const permitidas = opcoesParcelamento(produto).map(o => o.parcelas);
     if (!permitidas.includes(parcelas)) return erro(res, 422, 'Número de parcelas inválido');
+
+    if (!corpo.tokenCartao) {
+      /* Sem token, só aceitamos os dados do cartão se o modo direto estiver
+         explicitamente ligado — ver o aviso sobre PCI-DSS em _config.js. */
+      if (!CONFIG.cartaoDireto) {
+        return erro(res, 422, 'Dados do cartão não foram enviados corretamente');
+      }
+      cartao = validarCartao(corpo.cartao);
+      if (!cartao) return erro(res, 422, 'Confira os dados do cartão');
+    }
   }
 
   const pedido = {
@@ -99,7 +144,7 @@ export default async function handler(req, res) {
     }
 
     const cobranca = await criarPagamentoCartao({
-      pedido, produto, cliente, tokenCartao: corpo.tokenCartao, parcelas
+      pedido, produto, cliente, tokenCartao: corpo.tokenCartao, cartao, parcelas
     });
     pedido.idGateway = cobranca.idGateway;
     pedido.status = cobranca.status;

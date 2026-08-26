@@ -176,7 +176,7 @@ footer{border-top:1px solid var(--linha);padding:26px 20px;text-align:center;fon
         </form>
 
         <h2 style="margin-top:28px"><span class="passo-num">2</span> Forma de pagamento</h2>
-        <div class="abas" role="tablist">
+        <div class="abas" role="tablist" id="abas-pagamento">
           <button class="aba" id="aba-pix" role="tab" aria-selected="true" aria-controls="painel-pix" type="button">⚡ Pix</button>
           <button class="aba" id="aba-cartao" role="tab" aria-selected="false" aria-controls="painel-cartao" type="button">💳 Cartão</button>
         </div>
@@ -295,6 +295,7 @@ footer{border-top:1px solid var(--linha);padding:26px 20px;text-align:center;fon
 const $ = (s) => document.querySelector(s);
 const PRODUTO_ID = 'bot-24h';
 let modoSimulado = false;
+let configCartao = { modo: 'desligado' };
 let pedidoAtual = null;
 let poll = null;
 let cronometro = null;
@@ -356,7 +357,16 @@ async function carregarProduto() {
     if (!d.ok) throw new Error(d.erro || 'Falha ao carregar o produto');
 
     modoSimulado = !!d.modoSimulado;
+    configCartao = d.cartao || { modo: 'desligado' };
     $('#aviso-simulado').classList.toggle('visivel', modoSimulado);
+
+    /* Se o cartão não estiver habilitado, a aba some em vez de aceitar os
+       dados e falhar depois de o cliente digitar tudo. */
+    if (configCartao.modo === 'desligado' && !modoSimulado) {
+      $('#aba-cartao').hidden = true;
+      $('#abas-pagamento').style.gridTemplateColumns = '1fr';
+      trocarAba('pix');
+    }
     $('#produto-nome').textContent = d.produto.nome;
     $('#produto-descricao').textContent = d.produto.descricao;
     document.querySelectorAll('[data-valor]').forEach(el => el.textContent = d.produto.valorFormatado);
@@ -493,24 +503,51 @@ $('#btn-simular').addEventListener('click', async () => {
   });
 });
 
-/* ---------------------------------------------------------------- Cartão */
-/* ⚠️ TOKENIZAÇÃO — ponto que precisa da documentação da FreePay.
-   O número do cartão não pode chegar ao nosso servidor: isso jogaria o
-   projeto inteiro no escopo pesado do PCI-DSS. O caminho correto é o SDK do
-   gateway transformar os dados em um token aqui no navegador, e só o token
-   ir para a nossa API.
-   Quando você tiver o SDK da FreePay, carregue o script deles no <head> e
-   implemente a chamada dentro desta função. */
-async function tokenizarCartao(dados) {
-  if (window.FreePay && typeof window.FreePay.createToken === 'function') {
-    const { token } = await window.FreePay.createToken(dados);
-    return token;
-  }
+/* ---------------------------------------------------------------- Cartão
+
+   Três caminhos, decididos pelo servidor (GET /api/produto → cartao.modo):
+
+   'sdk'      → o navegador troca o cartão por um token direto com o gateway.
+                O número NUNCA passa pelo nosso servidor. É o caminho certo:
+                mantém o site fora do escopo pesado do PCI-DSS.
+   'direto'   → os campos vão para a nossa API, que repassa ao gateway.
+                Funciona sem SDK, mas o número transita pelo nosso servidor
+                (ver o aviso em api/_config.js antes de ligar).
+   'desligado'→ a aba de cartão nem aparece; só Pix.                        */
+
+async function obterTokenCartao(dados) {
   if (modoSimulado) {
     /* Em teste: cartão terminado em 0000 simula recusa, qualquer outro aprova. */
     return dados.numero.replace(/\D/g,'').endsWith('0000') ? 'tok_teste_recusa' : 'tok_teste_ok';
   }
-  throw new Error('O processador de cartão ainda não está configurado neste site. Use o Pix.');
+
+  /* SDK carregado na página (se a FreePay fornecer um script). */
+  if (window.FreePay && typeof window.FreePay.createToken === 'function') {
+    const { token } = await window.FreePay.createToken(dados);
+    return token;
+  }
+
+  /* Endpoint de tokenização do gateway, chamado do navegador com a chave
+     pública. Confira os nomes dos campos na documentação do gateway. */
+  if (configCartao.modo === 'sdk' && configCartao.urlTokenizacao) {
+    const r = await fetch(configCartao.urlTokenizacao, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + configCartao.chavePublica },
+      body: JSON.stringify({
+        number: dados.numero, holder_name: dados.titular,
+        exp_month: dados.validade.slice(0,2), exp_year: '20' + dados.validade.slice(-2),
+        cvv: dados.cvv
+      })
+    });
+    const d = await r.json().catch(() => ({}));
+    const token = d.token || d.id || d.card_token || d.data?.token;
+    if (!token) throw new Error('Não foi possível validar o cartão. Tente novamente ou use o Pix.');
+    return token;
+  }
+
+  if (configCartao.modo === 'direto') return null;   // segue sem token
+
+  throw new Error('O pagamento com cartão ainda não está disponível neste site. Use o Pix.');
 }
 
 function validarCartaoLocalmente() {
@@ -554,12 +591,13 @@ $('#btn-cartao').addEventListener('click', async () => {
   const original = botao.innerHTML;
   ocupado(botao, true, original);
   try {
-    const token = await tokenizarCartao({
+    const dadosCartao = {
       numero: $('#numero').value.replace(/\D/g,''),
       titular: $('#titular').value.trim(),
       validade: $('#validade').value,
       cvv: $('#cvv').value
-    });
+    };
+    const token = await obterTokenCartao(dadosCartao);
 
     const d = await chamar('/api/criar-pagamento', {
       method: 'POST',
@@ -568,7 +606,9 @@ $('#btn-cartao').addEventListener('click', async () => {
         produtoId: PRODUTO_ID,
         metodo: 'cartao',
         cliente: dadosCliente(),
-        tokenCartao: token,
+        /* Com token, o cartão nem sai daqui. Sem token (modo direto), os
+           campos seguem para a nossa API — e só nesse caso. */
+        ...(token ? { tokenCartao: token } : { cartao: dadosCartao }),
         parcelas: Number($('#parcelas').value)
       })
     });

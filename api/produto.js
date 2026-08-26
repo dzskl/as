@@ -31,6 +31,15 @@ export default async function handler(req, res) {
           : `${o.parcelas}x de R$ ${formatarBRL(o.valorParcelaCentavos)} sem juros`
       }))
     },
-    modoSimulado: CONFIG.modoGateway === 'simulado'
+    modoSimulado: CONFIG.modoGateway === 'simulado',
+    cartao: {
+      /* Como o navegador deve tratar o cartão:
+         'sdk'      → tokeniza no gateway pelo endpoint informado
+         'direto'   → envia os campos para a nossa API (ver aviso no _config)
+         'desligado'→ só Pix */
+      modo: CONFIG.urlTokenizacao ? 'sdk' : (CONFIG.cartaoDireto ? 'direto' : 'desligado'),
+      urlTokenizacao: CONFIG.urlTokenizacao,
+      chavePublica: CONFIG.urlTokenizacao ? CONFIG.chavePublica : ''
+    }
   });
 }

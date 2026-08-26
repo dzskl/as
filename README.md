@@ -150,12 +150,19 @@ Ou seja: preencha `FREEPAY_CHAVE_PUBLICA` e `FREEPAY_CHAVE_SECRETA` e a chamada 
 5. se existe SDK JS para tokenizar cartão no navegador
 Configure a URL do webhook no painel da FreePay como `https://seudominio.com.br/api/webhook`.
 
-**O cartão precisa de um passo a mais:** o número do cartão não pode chegar ao nosso servidor —
-isso jogaria o projeto no escopo pesado do PCI-DSS. O certo é o SDK do gateway transformar os
-dados em token no próprio navegador. A função `tokenizarCartao()` em `checkout.html` já está
-preparada para chamar `window.FreePay.createToken()`; falta carregar o script deles e confirmar
-a assinatura do método. Enquanto isso não existir, o cartão avisa o cliente e o Pix funciona
-normalmente.
+**Cartão — três modos**, escolhidos por variável de ambiente e informados ao navegador pelo
+`GET /api/produto`:
+
+| Modo | Como ligar | Onde passa o número do cartão |
+|---|---|---|
+| `sdk` *(recomendado)* | `FREEPAY_TOKENIZACAO_URL` preenchida | Navegador → gateway. Nunca no seu servidor. |
+| `direto` | `CARTAO_DIRETO=1` | Navegador → **seu servidor** → gateway. |
+| `desligado` *(padrão)* | nenhuma das duas | A aba de cartão nem aparece; só Pix. |
+
+⚠️ O modo `direto` coloca este site no escopo pesado do **PCI-DSS (SAQ-D)**: você assume a
+responsabilidade de proteger dado de cartão. O código nunca grava nem registra o número — o log
+de diagnóstico mascara para `****1234` e o CVV para `***` — mas o dado transita pelo servidor.
+Prefira o modo `sdk`: peça à FreePay o endpoint de tokenização no navegador.
 
 ### Armazenamento dos pedidos
 

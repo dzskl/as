@@ -44,6 +44,22 @@ export const STATUS = {
 
 const env = (nome, padrao = '') => process.env[nome] || padrao;
 
+/* Número de cartão e CVV nunca podem aparecer em log — nem em diagnóstico.
+   Log é armazenado, replicado e lido por gente; dado de cartão em log é uma
+   das falhas mais comuns de PCI. */
+function semDadosSensiveis(corpo) {
+  if (!corpo || typeof corpo !== 'object') return corpo;
+  const copia = JSON.parse(JSON.stringify(corpo));
+  if (copia.card) {
+    copia.card = {
+      ...copia.card,
+      number: copia.card.number ? '****' + String(copia.card.number).slice(-4) : undefined,
+      cvv: copia.card.cvv ? '***' : undefined
+    };
+  }
+  return copia;
+}
+
 /* ---------------------------------------------------------------- helpers */
 
 export function cabecalhoAutenticacao() {
@@ -80,7 +96,7 @@ async function chamarApi(caminho, corpo, metodo = 'POST') {
       /* Log completo dos dois lados da conversa, para acertar o mapeamento
          de campos durante a integração. Nunca deixe DIAGNOSTICO=1 ligado
          depois: o corpo carrega dados pessoais do comprador. */
-      console.log('[gateway] POST', base + caminho, '\n  enviado:', JSON.stringify(corpo),
+      console.log('[gateway] POST', base + caminho, '\n  enviado:', JSON.stringify(semDadosSensiveis(corpo)),
                   '\n  status:', resposta.status, '\n  recebido:', texto.slice(0, 1500));
     }
     let dados;
@@ -155,12 +171,24 @@ export function montarCorpoPix({ pedido, produto, cliente }) {
   };
 }
 
-export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, parcelas }) {
+export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas }) {
+  /* Dois caminhos: token (preferido) ou dados do cartão (só com
+     CARTAO_DIRETO=1 — veja o aviso em _config.js). */
+  const pagamento = tokenCartao
+    ? { card_token: tokenCartao }
+    : { card: {
+          number: cartao.numero,
+          holder_name: cartao.titular,
+          exp_month: cartao.mes,
+          exp_year: cartao.ano,
+          cvv: cartao.cvv
+        } };
+
   return {
     amount: produto.valorCentavos,
     payment_method: 'credit_card',
     installments: parcelas,
-    card_token: tokenCartao,      // token gerado no navegador pelo SDK do gateway
+    ...pagamento,
     reference_id: pedido.id,
     postback_url: `${CONFIG.urlSite}/api/webhook`,
     items: [{ title: produto.nome, unit_price: produto.valorCentavos, quantity: 1 }],
@@ -267,7 +295,7 @@ export async function criarPagamentoPix({ pedido, produto, cliente }) {
   };
 }
 
-export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCartao, parcelas }) {
+export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas }) {
   if (CONFIG.modoGateway === 'simulado') {
     /* Token de teste que termina em "recusa" simula uma recusa do emissor,
        para você conseguir testar a tela de erro. */
@@ -280,7 +308,7 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
   }
 
   const caminho = env('FREEPAY_CAMINHO_TRANSACAO', '/payment-transaction/create');
-  const r = await chamarApi(caminho, montarCorpoCartao({ pedido, produto, cliente, tokenCartao, parcelas }));
+  const r = await chamarApi(caminho, montarCorpoCartao({ pedido, produto, cliente, tokenCartao, cartao, parcelas }));
   return {
     idGateway: String(r.id ?? r.transaction_id ?? ''),
     status: traduzirStatus(r.status),
