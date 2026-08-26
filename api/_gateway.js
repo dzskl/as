@@ -186,59 +186,71 @@ export function montarCorpoPix({ pedido, produto, cliente }) {
 
 /* Arranjos do bloco de cartão. Todos carregam a mesma informação — muda só
    o nome e o formato dos campos, que é o que precisamos descobrir. */
-/* 'e' primeiro: é o arranjo que a própria API nos indicou, com todas as
-   grafias possíveis do nome do titular. Os outros ficam como alternativa. */
-export const FORMATOS_CARTAO = ['e', 'c', 'a', 'b', 'd'];
+/* NOMES POSSÍVEIS DO TITULAR DO CARTÃO
+   -------------------------------------------------------------------------
+   O que a própria API já nos disse, tentativa por tentativa:
+
+     d → "Card é obrigatório"            ⇒ a chave do bloco é "card"
+     c → "Card.HolderName is required"   ⇒ number, expirationMonth,
+                                            expirationYear e cvv foram aceitos;
+                                            só o titular não encaixou
+     e → HTTP 500                        ⇒ mandar várias grafias juntas QUEBRA
+                                            a API: ela rejeita propriedades
+                                            desconhecidas em vez de ignorá-las
+     a, b → HTTP 500                     ⇒ validade em snake_case não é lida
+
+   Conclusão: o corpo correto é o do "c", mudando apenas o nome do campo do
+   titular — e uma grafia por requisição. "HolderName" é o nome da propriedade
+   no modelo .NET deles; o nome no JSON é um destes abaixo. */
+export const CHAVES_TITULAR = [
+  'HolderName', 'holder_name', 'holder', 'name',
+  'cardHolderName', 'card_holder_name', 'cardHolder', 'card_holder',
+  'ownerName', 'owner', 'titular', 'holderName'
+];
+
+/* Arranjos históricos, mantidos para poder reproduzir os testes anteriores
+   via FREEPAY_FORMATO_CARTAO. O padrão hoje é sondar as chaves acima. */
+const ARRANJOS_ANTIGOS = ['a', 'b', 'c', 'd'];
+export const FORMATOS_CARTAO = CHAVES_TITULAR;
 
 export function blocoCartao(cartao, formatoPedido) {
   const { numero, titular, mes, ano, cvv } = cartao;
-  const formato = String(formatoPedido || env('FREEPAY_FORMATO_CARTAO', 'e')).trim().toLowerCase();
+  const formato = String(formatoPedido || env('FREEPAY_FORMATO_CARTAO', 'HolderName')).trim();
 
-  switch (formato) {
-    /* e — o arranjo que a API confirmou (objeto "card", validade em
-       camelCase e como texto), com TODAS as grafias plausíveis do nome do
-       titular ao mesmo tempo.
+  if (!ARRANJOS_ANTIGOS.includes(formato.toLowerCase()) || formato.length > 1) {
+    /* Corpo confirmado pela API, com UMA grafia do titular. */
+    return { card: {
+      number: numero,
+      expirationMonth: mes,
+      expirationYear: ano,
+      cvv,
+      [formato]: titular
+    } };
+  }
 
-       Por que isso funciona: a validação respondeu
-         {"Card.HolderName": ["The HolderName field is required."]}
-       ou seja, a propriedade do modelo chama-se HolderName, mas o nome dela
-       no JSON é outro — e não sabemos qual. Serializadores .NET ignoram
-       propriedades desconhecidas por padrão, então mandar todas as grafias
-       juntas faz a correta encaixar e as demais serem descartadas. */
-    case 'e':
-      return { card: {
-        number: numero,
-        expirationMonth: mes, expirationYear: ano, cvv,
-        holderName: titular,
-        holder_name: titular,
-        holder: titular,
-        name: titular,
-        cardHolderName: titular,
-        card_holder_name: titular
-      } };
-
-    /* b — snake_case por extenso, comum em gateways brasileiros */
+  switch (formato.toLowerCase()) {
+    /* b — snake_case por extenso */
     case 'b':
       return { card: {
         number: numero, holder_name: titular,
         expiration_month: mes, expiration_year: ano, cvv
       } };
 
-    /* c — camelCase, padrão de serialização mais comum em APIs .NET */
+    /* c — camelCase (chegou à validação; só o titular faltou) */
     case 'c':
       return { card: {
         number: numero, holderName: titular,
         expirationMonth: mes, expirationYear: ano, cvv
       } };
 
-    /* d — validade num campo único MM/AA, dentro de credit_card */
+    /* d — bloco credit_card (recusado: a chave é "card") */
     case 'd':
       return { credit_card: {
         number: numero, holder_name: titular,
         expiration_date: `${mes}/${ano.slice(-2)}`, cvv
       } };
 
-    /* a — abreviado (padrão atual) */
+    /* a — abreviado */
     default:
       return { card: {
         number: numero, holder_name: titular,
@@ -385,7 +397,10 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
   }
 
   const caminho = env('FREEPAY_CAMINHO_TRANSACAO', '/payment-transaction/create');
-  const configurado = env('FREEPAY_FORMATO_CARTAO', 'a').trim().toLowerCase();
+  /* Sem configuração explícita, começamos pela grafia mais provável e a
+     sonda percorre as demais. Não normalizamos a caixa: "HolderName" e
+     "holderName" são nomes JSON diferentes. */
+  const configurado = env('FREEPAY_FORMATO_CARTAO', 'HolderName').trim();
 
   /* Durante a integração (DIAGNOSTICO ligado), tentamos os formatos restantes
      quando a API devolve 5xx. Isso é seguro justamente porque um 5xx aqui não
