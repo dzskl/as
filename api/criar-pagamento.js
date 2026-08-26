@@ -21,6 +21,14 @@ import { criarPagamentoPix, criarPagamentoCartao, STATUS } from './_gateway.js';
 import { salvarPedido } from './_pedidos.js';
 import { json, erro, lerJson, ipDoCliente, limiteExcedido } from './_http.js';
 
+/* Erros de rede do fetch chegam como "fetch failed", com o motivo real
+   escondido em e.cause (DNS, TLS, porta, timeout). Durante a integração,
+   é justamente a causa que interessa. */
+function detalharErro(e) {
+  const causa = e?.cause?.message || e?.cause?.code;
+  return causa ? `${e.message} | causa: ${causa}` : String(e?.message || e);
+}
+
 export function tokenAcesso(pedidoId) {
   return crypto.createHmac('sha256', CONFIG.segredoApp).update(pedidoId).digest('hex').slice(0, 32);
 }
@@ -114,6 +122,6 @@ export default async function handler(req, res) {
        do gateway. */
     console.error('[criar-pagamento] falha:', e);
     return erro(res, 502, 'Não conseguimos iniciar o pagamento agora. Tente novamente em instantes.',
-      CONFIG.diagnostico ? { diagnostico: e.message } : {});
+      CONFIG.diagnostico ? { diagnostico: detalharErro(e) } : {});
   }
 }

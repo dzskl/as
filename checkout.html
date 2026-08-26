@@ -112,7 +112,7 @@ input[aria-invalid="true"]{border-color:var(--vermelho)}
 /* ----- Avisos ----- */
 .aviso{border-radius:12px;padding:14px 16px;font-size:.88rem;margin-bottom:18px;display:none}
 .aviso.visivel{display:block}
-.aviso.erro{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);color:#fca5a5}
+.aviso.erro{background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.35);color:#fca5a5;white-space:pre-wrap;word-break:break-word}
 .aviso.info{background:rgba(251,191,36,.09);border:1px solid rgba(251,191,36,.35);color:#fbbf24}
 .sucesso{text-align:center;padding:20px 0}
 .sucesso .circulo{width:76px;height:76px;border-radius:50%;margin:0 auto 20px;display:grid;place-items:center;
@@ -378,14 +378,22 @@ $('#aba-pix').addEventListener('click', () => trocarAba('pix'));
 $('#aba-cartao').addEventListener('click', () => trocarAba('cartao'));
 
 /* -------------------------------------------------------------- chamada API */
+/* Com DIAGNOSTICO=1 no servidor, a resposta traz o erro cru do gateway.
+   Mostrar isso na tela evita ter que caçar log durante a integração. */
+function mensagemDe(d, padrao) {
+  const base = d.erro || padrao;
+  return d.diagnostico ? `${base}\n\n[diagnóstico] ${d.diagnostico}` : base;
+}
+
 async function chamar(caminho, opcoes) {
   const r = await fetch(caminho, opcoes);
   const d = await r.json().catch(() => ({}));
   if (r.status === 422 && d.campos) {
     Object.entries(d.campos).forEach(([campo, msg]) => mostrarErroCampo(campo, msg));
-    throw new Error(d.erro || 'Confira os dados informados');
+    throw new Error(mensagemDe(d, 'Confira os dados informados'));
   }
   if (!r.ok && !d.erro) throw new Error('Erro inesperado. Tente novamente.');
+  if (!r.ok && d.diagnostico) throw new Error(mensagemDe(d, 'Erro no pagamento'));
   return d;
 }
 
@@ -401,7 +409,7 @@ $('#btn-pix').addEventListener('click', async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ produtoId: PRODUTO_ID, metodo: 'pix', cliente: dadosCliente() })
     });
-    if (!d.ok) throw new Error(d.erro || 'Não foi possível gerar o Pix');
+    if (!d.ok) throw new Error(mensagemDe(d, 'Não foi possível gerar o Pix'));
 
     pedidoAtual = d.pedidoId;
     $('#pix-qr').src = d.pix.imagem || '';
@@ -558,7 +566,7 @@ $('#btn-cartao').addEventListener('click', async () => {
       })
     });
 
-    if (!d.ok) throw new Error(d.erro || 'Pagamento não aprovado');
+    if (!d.ok) throw new Error(mensagemDe(d, 'Pagamento não aprovado'));
     concluir(d.urlAcesso);
   } catch (e) {
     avisarErro(e.message);
