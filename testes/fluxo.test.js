@@ -158,12 +158,12 @@ await teste('cartão sem token é recusado', async () => {
   assert.equal(r.status, 422);
 });
 
-await teste('cartão sem endereço de cobrança é recusado', async () => {
+await teste('página antiga (sem endereço) pede recarregar, não "confira o campo"', async () => {
   const r = await post('/api/criar-pagamento', {
     produtoId:'bot-24h', metodo:'cartao', cliente, tokenCartao:'tok_teste_ok', parcelas: 1
   });
   assert.equal(r.status, 422);
-  assert.ok((await r.json()).campos.cep, 'esperava erro apontando o endereço');
+  assert.match((await r.json()).erro, /Recarregue/i);
 });
 
 await teste('endereço incompleto é recusado', async () => {

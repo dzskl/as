@@ -124,9 +124,18 @@ export default async function handler(req, res) {
     }
 
     endereco = validarEndereco(corpo.endereco);
-    if (!endereco) return erro(res, 422, 'Confira o endereço de cobrança', {
-      campos: { cep: 'Endereço de cobrança incompleto' }
-    });
+    if (!endereco) {
+      /* Se o navegador nem enviou o objeto, a página é anterior aos campos de
+         endereço — cache do navegador depois de um deploy. Vale distinguir:
+         mandar o cliente "conferir o endereço" quando não existe campo de
+         endereço na tela é um beco sem saída. */
+      const paginaAntiga = !corpo.endereco;
+      return erro(res, 422,
+        paginaAntiga
+          ? 'Sua página está desatualizada. Recarregue com Ctrl+Shift+R (ou Cmd+Shift+R no Mac) e tente de novo.'
+          : 'Confira o endereço de cobrança',
+        paginaAntiga ? {} : { campos: { cep: 'Endereço de cobrança incompleto' } });
+    }
   }
 
   const pedido = {
