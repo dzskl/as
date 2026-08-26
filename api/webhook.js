@@ -28,7 +28,7 @@ export default async function handler(req, res) {
   try { bruto = await lerCorpoBruto(req); }
   catch { return erro(res, 400, 'Corpo inválido'); }
 
-  if (!verificarAssinaturaWebhook(req.headers, bruto)) {
+  if (!verificarAssinaturaWebhook(req.headers, bruto, req.url)) {
     console.warn('[webhook] assinatura inválida — evento descartado');
     return erro(res, 401, 'Assinatura inválida');
   }

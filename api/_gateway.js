@@ -221,25 +221,51 @@ export async function consultarPagamento(idGateway) {
 
 /* ------------------------------------------------------------------ webhook */
 
-/* Confere a assinatura do webhook. Falha fechada: sem segredo configurado,
-   nenhum webhook é aceito em produção — senão qualquer pessoa que descobrisse
-   a URL poderia liberar acesso de graça mandando um POST. */
-export function verificarAssinaturaWebhook(headers, corpoBruto) {
+/* Comparação em tempo constante, para não vazar o segredo pelo tempo de
+   resposta. timingSafeEqual exige o mesmo tamanho: conferir antes evita a
+   exceção e não revela nada além do comprimento, que já é público. */
+function iguaisEmTempoConstante(a, b) {
+  const bufA = Buffer.from(String(a), 'utf8');
+  const bufB = Buffer.from(String(b), 'utf8');
+  return bufA.length === bufB.length && crypto.timingSafeEqual(bufA, bufB);
+}
+
+/* Autentica o webhook. Falha fechada: sem nenhum dos dois mecanismos abaixo
+   configurado, nada é aceito — senão qualquer pessoa que descobrisse a URL
+   liberaria acesso de graça mandando um POST.
+
+   Dois caminhos, nessa ordem de preferência:
+
+   1. ASSINATURA HMAC (FREEPAY_WEBHOOK_SEGREDO) — o jeito certo, quando o
+      gateway assina o corpo da requisição. Configure também
+      FREEPAY_WEBHOOK_HEADER com o nome do header que carrega a assinatura.
+
+   2. TOKEN NA URL (FREEPAY_WEBHOOK_TOKEN) — para gateways que NÃO assinam
+      nada. Você cadastra a URL do webhook com um token secreto na query:
+         https://seusite.com/api/webhook?token=<valor aleatório longo>
+      Quem não souber o token não consegue postar. É mais fraco que a
+      assinatura (o token viaja na URL e aparece em logs de servidor), mas é
+      muito melhor do que aceitar qualquer POST. Use HTTPS sempre. */
+export function verificarAssinaturaWebhook(headers, corpoBruto, urlRequisicao = '') {
   if (CONFIG.modoGateway === 'simulado') return true;
 
   const segredo = env('FREEPAY_WEBHOOK_SEGREDO');
-  if (!segredo) return false;
+  if (segredo) {
+    const nomeHeader = env('FREEPAY_WEBHOOK_HEADER', 'x-signature').toLowerCase();
+    const recebida = String(headers[nomeHeader] || '').replace(/^sha256=/, '').trim();
+    if (!recebida) return false;
+    const esperada = crypto.createHmac('sha256', segredo).update(corpoBruto).digest('hex');
+    return iguaisEmTempoConstante(recebida, esperada);
+  }
 
-  const nomeHeader = env('FREEPAY_WEBHOOK_HEADER', 'x-signature').toLowerCase();
-  const recebida = String(headers[nomeHeader] || '').replace(/^sha256=/, '').trim();
-  if (!recebida) return false;
+  const token = env('FREEPAY_WEBHOOK_TOKEN');
+  if (token) {
+    const recebido = new URL(urlRequisicao || '/', 'http://local').searchParams.get('token') || '';
+    return iguaisEmTempoConstante(recebido, token);
+  }
 
-  const esperada = crypto.createHmac('sha256', segredo).update(corpoBruto).digest('hex');
-  const a = Buffer.from(recebida, 'utf8');
-  const b = Buffer.from(esperada, 'utf8');
-  /* timingSafeEqual exige o mesmo tamanho; comparar antes evita exceção e
-     não vaza informação além do tamanho, que já é público. */
-  return a.length === b.length && crypto.timingSafeEqual(a, b);
+  console.warn('[webhook] nem FREEPAY_WEBHOOK_SEGREDO nem FREEPAY_WEBHOOK_TOKEN configurados — evento recusado');
+  return false;
 }
 
 /* Extrai o que interessa do corpo do webhook. Ajuste conforme as docs. */

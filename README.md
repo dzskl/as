@@ -116,7 +116,8 @@ testes/fluxo.test.js   17 testes de ponta a ponta
 
 ```bash
 npm run dev      # http://localhost:3000/checkout.html
-npm run teste    # 17 testes de ponta a ponta
+npm run teste    # 19 testes de ponta a ponta
+node testes/webhook-seguranca.test.js   # 10 testes da autenticação do webhook
 ```
 
 Sem credencial nenhuma o checkout já funciona em **modo simulado**: gera um Pix falso (com
@@ -166,8 +167,9 @@ desenvolvimento, inaceitável em produção.
 ### O que já está protegido
 
 - **preço vem do servidor** (`api/_config.js`): mandar `valorCentavos: 1` no corpo não muda nada;
-- **webhook falha fechada**: sem segredo configurado, nenhum evento é aceito — senão qualquer
-  pessoa com a URL liberaria acesso de graça;
+- **webhook falha fechada**: sem assinatura nem token configurados, nenhum evento é aceito —
+  senão qualquer pessoa com a URL liberaria acesso de graça. Aceita HMAC-SHA256 (preferido) ou,
+  para gateways que não assinam nada, um token secreto na query da URL do webhook;
 - **idempotência**: evento repetido não entrega o produto duas vezes, e pedido pago não volta
   para pendente por evento fora de ordem;
 - **dados revalidados no servidor**, incluindo os dígitos verificadores do CPF;
