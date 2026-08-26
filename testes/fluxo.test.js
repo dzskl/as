@@ -192,6 +192,11 @@ await teste('cartão sem token é recusado', async () => {
     assert.ok(corpoPix.customer.document.type);
   });
 
+  await teste('metadata obrigatório vai no corpo com o id do pedido', async () => {
+    assert.ok(corpoPix.metadata, 'a FreePay recusa a requisição sem metadata');
+    assert.equal(corpoPix.metadata.pedido_id, 'ped-1');
+  });
+
   await teste('valor e referência do pedido seguem no corpo', async () => {
     assert.equal(corpoPix.amount, 19700);
     assert.equal(corpoPix.reference_id, 'ped-1');

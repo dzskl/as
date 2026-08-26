@@ -132,6 +132,15 @@ function montarCliente(cliente) {
   };
 }
 
+/* A FreePay exige um campo "metadata" ("O json metadata é obrigatório").
+   Mandamos o identificador do pedido, que é o que interessa recuperar depois
+   no painel deles. Se a API esperar texto em vez de objeto, ligue
+   FREEPAY_METADATA_TEXTO=1 e ele vai serializado como string JSON. */
+function montarMetadata(pedido, produto) {
+  const dados = { pedido_id: pedido.id, produto: produto.id ?? produto.nome };
+  return env('FREEPAY_METADATA_TEXTO') === '1' ? JSON.stringify(dados) : dados;
+}
+
 /* Corpo do POST — nomes dos campos ajustados conforme a validação da API. */
 export function montarCorpoPix({ pedido, produto, cliente }) {
   return {
@@ -141,7 +150,8 @@ export function montarCorpoPix({ pedido, produto, cliente }) {
     postback_url: `${CONFIG.urlSite}/api/webhook`,
     pix_expires_in: 3600,
     items: [{ title: produto.nome, unit_price: produto.valorCentavos, quantity: 1 }],
-    customer: montarCliente(cliente)
+    customer: montarCliente(cliente),
+    metadata: montarMetadata(pedido, produto)
   };
 }
 
@@ -154,7 +164,8 @@ export function montarCorpoCartao({ pedido, produto, cliente, tokenCartao, parce
     reference_id: pedido.id,
     postback_url: `${CONFIG.urlSite}/api/webhook`,
     items: [{ title: produto.nome, unit_price: produto.valorCentavos, quantity: 1 }],
-    customer: montarCliente(cliente)
+    customer: montarCliente(cliente),
+    metadata: montarMetadata(pedido, produto)
   };
 }
 
