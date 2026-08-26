@@ -88,8 +88,16 @@ async function chamarApi(caminho, corpo, metodo = 'POST') {
     catch { throw new Error(`Resposta não-JSON do gateway (${resposta.status}): ${texto.slice(0, 200)}`); }
 
     if (!resposta.ok) {
-      const msg = dados.message || dados.erro || dados.error || `HTTP ${resposta.status}`;
-      throw new Error(`Gateway recusou a requisição: ${msg}`);
+      /* Cada gateway põe a mensagem de erro num campo diferente. Tentamos os
+         mais comuns e, em diagnóstico, anexamos a resposta crua — é ela que
+         revela quais campos a API esperava. */
+      const msg = dados.message || dados.erro || dados.error || dados.msg || dados.detail
+        || (dados.errors ? JSON.stringify(dados.errors) : '')
+        || `HTTP ${resposta.status}`;
+      const cru = CONFIG.diagnostico
+        ? ` | HTTP ${resposta.status} | resposta: ${texto ? texto.slice(0, 900) : '(corpo vazio)'}`
+        : '';
+      throw new Error(`Gateway recusou a requisição: ${msg}${cru}`);
     }
     return dados;
   } finally {
