@@ -156,6 +156,25 @@ await teste('cartão sem token é recusado', async () => {
   assert.equal(r.status, 422);
 });
 
+/* --- Autenticação da FreePay, conforme o exemplo Node da documentação:
+   Basic base64("PUBLIC_KEY:SECRET_KEY") --- */
+{
+  const { cabecalhoAutenticacao } = await import('../api/_gateway.js');
+  await teste('Basic combina chave pública e secreta, nessa ordem', async () => {
+    process.env.FREEPAY_CHAVE_PUBLICA = 'pub_teste';
+    process.env.FREEPAY_CHAVE_SECRETA = 'sec_teste';
+    process.env.FREEPAY_AUTH = 'basic';
+    const esperado = 'Basic ' + Buffer.from('pub_teste:sec_teste').toString('base64');
+    assert.equal(cabecalhoAutenticacao(), esperado);
+  });
+
+  await teste('sem chave pública, avisa em vez de mandar Basic incompleto', async () => {
+    delete process.env.FREEPAY_CHAVE_PUBLICA;
+    assert.throws(() => cabecalhoAutenticacao(), /FREEPAY_CHAVE_PUBLICA/);
+    process.env.FREEPAY_CHAVE_PUBLICA = 'pub_teste';
+  });
+}
+
 servidor.close();
 console.log(`\n  ${passou} passaram, ${falhou} falharam\n`);
 process.exit(falhou ? 1 : 0);

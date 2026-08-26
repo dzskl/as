@@ -128,17 +128,25 @@ No cartão em modo simulado: número terminado em `0000` simula recusa, qualquer
 
 ### Ligar a FreePay
 
-⚠️ **A documentação pública da FreePay não está disponível** — o mapeamento em `api/_gateway.js`
-segue o padrão mais comum entre sub-adquirentes brasileiros (`POST /transactions`, auth Basic),
-mas **não foi verificado contra as docs oficiais**. Peça as docs ao suporte deles e confirme
-quatro pontos, todos configuráveis por variável de ambiente:
+Documentação oficial: <https://freepaybrasil.readme.io>. Chaves em *Credenciais API* no painel.
 
-1. `FREEPAY_URL_BASE` — a URL base da API
-2. `FREEPAY_AUTH` — `basic` ou `bearer`
-3. os nomes dos campos do POST (funções `montarCorpoPix` / `montarCorpoCartao`)
-4. `FREEPAY_WEBHOOK_HEADER` e o algoritmo da assinatura do webhook
+**Já confirmado e configurado como padrão:**
 
-Depois preencha as variáveis (veja `.env.example`) e troque `GATEWAY_MODO` para `freepay`.
+| Item | Valor |
+|---|---|
+| URL base | `https://api.freepaybrasil.com/v1` |
+| Criar transação | `POST /payment-transaction/create` |
+| Autenticação | `Basic base64("PUBLIC_KEY:SECRET_KEY")` — as **duas** chaves |
+
+Ou seja: preencha `FREEPAY_CHAVE_PUBLICA` e `FREEPAY_CHAVE_SECRETA` e a chamada já sai autenticada.
+
+**Ainda falta confirmar na documentação** (sem isso, mantenha `GATEWAY_MODO=simulado`):
+
+1. os nomes dos campos do corpo do POST (`montarCorpoPix` / `montarCorpoCartao`)
+2. o formato da resposta — de onde saem o QR Code e o id da transação
+3. `FREEPAY_CAMINHO_CONSULTA` — endpoint de consulta (enquanto vazio, o status vem só pelo webhook)
+4. `FREEPAY_WEBHOOK_HEADER` e o algoritmo da assinatura
+5. se existe SDK JS para tokenizar cartão no navegador
 Configure a URL do webhook no painel da FreePay como `https://seudominio.com.br/api/webhook`.
 
 **O cartão precisa de um passo a mais:** o número do cartão não pode chegar ao nosso servidor —

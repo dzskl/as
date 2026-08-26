@@ -12,20 +12,21 @@
                  sem ter credencial. É o padrão.
      freepay   → chama a API real da FreePay.
 
-   ⚠️ ATENÇÃO — LEIA ANTES DE USAR EM PRODUÇÃO
-   A FreePay não publica a documentação da API abertamente. O mapeamento
-   abaixo segue o padrão mais comum entre sub-adquirentes brasileiros
-   (POST /transactions com autenticação Basic), mas NÃO foi verificado
-   contra a documentação oficial. Peça as docs no suporte da FreePay e
-   confirme estes quatro pontos, todos configuráveis por variável de
-   ambiente, sem mexer no código:
+   CONFIRMADO pela documentação oficial (freepaybrasil.readme.io):
+     • URL base:  https://api.freepaybrasil.com/v1
+     • Criar transação:  POST /payment-transaction/create
+     • Autenticação: Basic base64("PUBLIC_KEY:SECRET_KEY")
+       (as DUAS chaves, separadas por dois-pontos — não é só a secreta)
 
-     1. FREEPAY_URL_BASE   — a URL base da API
-     2. FREEPAY_AUTH       — como autenticar (basic | bearer)
-     3. os nomes dos campos no corpo do POST (função montarCorpoPix/Cartao)
-     4. FREEPAY_WEBHOOK_HEADER — qual header carrega a assinatura do webhook
+   ⚠️ AINDA NÃO CONFIRMADO — não ligue GATEWAY_MODO=freepay antes de checar:
+     1. os nomes dos campos do corpo do POST (montarCorpoPix / montarCorpoCartao)
+     2. o formato da resposta (de onde sai o QR Code e o id da transação)
+     3. o endpoint de consulta de transação (FREEPAY_CAMINHO_CONSULTA)
+     4. o header e o algoritmo da assinatura do webhook (FREEPAY_WEBHOOK_HEADER)
+     5. se existe SDK JS para tokenizar cartão no navegador
 
-   Enquanto isso não estiver confirmado, mantenha GATEWAY_MODO=simulado.
+   Tudo isso é ajustável por variável de ambiente ou nas duas funções de
+   montagem logo abaixo, sem reescrever o resto do sistema.
    ========================================================================= */
 
 import crypto from 'node:crypto';
@@ -45,16 +46,20 @@ const env = (nome, padrao = '') => process.env[nome] || padrao;
 
 /* ---------------------------------------------------------------- helpers */
 
-function cabecalhoAutenticacao() {
-  const chave = env('FREEPAY_CHAVE_SECRETA');
-  if (!chave) throw new Error('FREEPAY_CHAVE_SECRETA não configurada');
-  if (env('FREEPAY_AUTH', 'basic') === 'bearer') return `Bearer ${chave}`;
-  return 'Basic ' + Buffer.from(`${chave}:`).toString('base64');
+export function cabecalhoAutenticacao() {
+  const secreta = env('FREEPAY_CHAVE_SECRETA');
+  if (!secreta) throw new Error('FREEPAY_CHAVE_SECRETA não configurada');
+
+  if (env('FREEPAY_AUTH', 'basic') === 'bearer') return `Bearer ${secreta}`;
+
+  /* A FreePay usa as duas chaves no Basic: base64("PUBLIC_KEY:SECRET_KEY"). */
+  const publica = env('FREEPAY_CHAVE_PUBLICA');
+  if (!publica) throw new Error('FREEPAY_CHAVE_PUBLICA não configurada (vai antes dos dois-pontos no Basic)');
+  return 'Basic ' + Buffer.from(`${publica}:${secreta}`).toString('base64');
 }
 
 async function chamarApi(caminho, corpo, metodo = 'POST') {
-  const base = env('FREEPAY_URL_BASE').replace(/\/$/, '');
-  if (!base) throw new Error('FREEPAY_URL_BASE não configurada');
+  const base = env('FREEPAY_URL_BASE', 'https://api.freepaybrasil.com/v1').replace(/\/$/, '');
 
   const controle = new AbortController();
   const limite = setTimeout(() => controle.abort(), 20000);
@@ -164,7 +169,7 @@ export async function criarPagamentoPix({ pedido, produto, cliente }) {
     };
   }
 
-  const caminho = env('FREEPAY_CAMINHO_TRANSACAO', '/transactions');
+  const caminho = env('FREEPAY_CAMINHO_TRANSACAO', '/payment-transaction/create');
   const r = await chamarApi(caminho, montarCorpoPix({ pedido, produto, cliente }));
   const pix = r.pix || r.qr_code || r.charge?.pix || {};
   return {
@@ -188,7 +193,7 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
     };
   }
 
-  const caminho = env('FREEPAY_CAMINHO_TRANSACAO', '/transactions');
+  const caminho = env('FREEPAY_CAMINHO_TRANSACAO', '/payment-transaction/create');
   const r = await chamarApi(caminho, montarCorpoCartao({ pedido, produto, cliente, tokenCartao, parcelas }));
   return {
     idGateway: String(r.id ?? r.transaction_id ?? ''),
@@ -199,8 +204,18 @@ export async function criarPagamentoCartao({ pedido, produto, cliente, tokenCart
 
 export async function consultarPagamento(idGateway) {
   if (CONFIG.modoGateway === 'simulado') return { status: STATUS.PENDENTE };
-  const caminho = env('FREEPAY_CAMINHO_CONSULTA', '/transactions/:id').replace(':id', encodeURIComponent(idGateway));
-  const r = await chamarApi(caminho, null, 'GET');
+
+  /* Sem o endpoint de consulta confirmado na documentação, não chutamos uma
+     URL: devolvemos "pendente" e seguimos confiando no webhook. Assim que
+     souber o caminho certo, preencha FREEPAY_CAMINHO_CONSULTA (use :id no
+     lugar do identificador) e esta rede de segurança passa a funcionar. */
+  const modelo = env('FREEPAY_CAMINHO_CONSULTA');
+  if (!modelo) {
+    console.warn('[gateway] FREEPAY_CAMINHO_CONSULTA não configurado — status vem só pelo webhook');
+    return { status: STATUS.PENDENTE };
+  }
+
+  const r = await chamarApi(modelo.replace(':id', encodeURIComponent(idGateway)), null, 'GET');
   return { status: traduzirStatus(r.status) };
 }
 
