@@ -15,6 +15,7 @@ HTML e CSS puros: sem build, sem framework, sem dependência. É só subir os ar
 | `capa.png` | Imagem 1200×630 que aparece ao compartilhar o link |
 | `vercel.json` | Configuração de deploy (URLs limpas, cache e headers) |
 | `checkout.html` + `api/` | Checkout próprio com Pix e cartão (ver seção abaixo) |
+| `painel.html` | Painel de controle: vendas, contatos, bot e configuração |
 
 ## Antes de publicar — o mínimo obrigatório
 
@@ -193,6 +194,70 @@ desenvolvimento, inaceitável em produção.
 - [ ] entrega real implementada em `api/_entrega.js` (e-mail e/ou convite no Telegram)
 - [ ] uma compra de teste ponta a ponta em produção, com valor baixo, e um estorno
 - [ ] `GATEWAY_MODO=freepay` (o modo simulado nunca deve ir para produção)
+
+## Bot do Telegram + painel
+
+O bot vende dentro do Telegram e o painel no site controla tudo — sem tocar em código.
+
+```
+api/telegram.js        webhook do bot: menu, catálogo, conversa de venda, Pix
+api/_telegram.js       cliente da API do Telegram
+api/_leads.js          contatos do bot e estado da conversa
+api/_configuracao.js   textos, produtos e preços editáveis pelo painel
+api/painel-login.js    sessão do administrador (cookie assinado)
+api/painel-dados.js    métricas, pedidos, contatos e alertas do sistema
+api/painel-config.js   leitura e gravação da configuração
+api/painel-bot.js      conectar/desconectar o bot e disparo em massa
+api/_kv.js             armazenamento (Vercel KV/Upstash, memória em dev)
+painel.html            o painel
+testes/bot-painel.test.js   21 testes de ponta a ponta
+```
+
+### Como o bot funciona
+
+Por **webhook**, não por polling: em ambiente serverless não existe processo vivo esperando
+mensagem. O Telegram chama `/api/telegram` a cada evento, a função responde e morre. O que
+precisa ser lembrado entre uma mensagem e outra fica no KV.
+
+Fluxo de venda em quatro toques: catálogo → escolhe o produto → e-mail → CPF → telefone
+(botão de contato, sem digitar) → código Pix na tela. Quem já comprou não repete os dados.
+Quando o pagamento é confirmado, o webhook do gateway avisa o comprador **no próprio chat**.
+
+### Ligar o bot
+
+1. Fale com o [@BotFather](https://t.me/BotFather) no Telegram, mande `/newbot` e copie o token
+2. Na Vercel, crie:
+   - `TELEGRAM_BOT_TOKEN` — o token do BotFather
+   - `TELEGRAM_WEBHOOK_SEGREDO` — valor aleatório seu
+   - `PAINEL_SENHA` — a senha do painel
+   - `URL_SITE` — o endereço público do site (o Telegram exige HTTPS)
+3. Redeploy
+4. Abra `/painel.html`, entre com a senha, vá na aba **Bot** e clique em **Conectar**
+
+O botão registra o webhook e os comandos do menu. A partir daí o bot responde.
+
+### O que dá para fazer pelo painel
+
+| Aba | O que controla |
+|---|---|
+| **Visão geral** | Receita de hoje / 7 / 30 dias, gráfico diário, conversão e alertas de configuração |
+| **Pedidos** | Os 40 mais recentes, com origem (site ou bot), método e status |
+| **Contatos** | Quem falou com o bot, e o disparo em massa (opcionalmente só para compradores) |
+| **Bot** | Status do webhook, conectar, desconectar, link para divulgar |
+| **Configuração** | Dados da loja, produtos e preços, e todas as mensagens do bot |
+
+Preço editado no painel vale para o site e para o bot ao mesmo tempo — os dois leem da mesma
+fonte, e o valor continua sendo decidido no servidor.
+
+### Segurança do painel e do bot
+
+- Painel protegido por senha (`PAINEL_SENHA`) com cookie assinado por HMAC — sem banco de
+  sessões, e um cookie forjado não passa. Login limitado a 5 tentativas por minuto por IP.
+- O webhook do bot só aceita chamadas com o `secret_token` que registramos no Telegram.
+- O disparo em massa respeita o limite do Telegram (lotes com pausa): passar do limite faz o
+  bot ser silenciado, o que é pior que um disparo lento.
+- Preço vindo do painel é validado (R$ 1 a R$ 50.000): um erro de digitação não deixa a loja
+  vendendo de graça.
 
 ## Estrutura da página
 

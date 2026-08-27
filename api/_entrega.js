@@ -13,6 +13,10 @@
    cobranças de e-mail ou dois convites.
    ========================================================================= */
 
+import { enviar, escapar, botConfigurado } from './_telegram.js';
+import { lerConfig, preencher, buscarProduto } from './_configuracao.js';
+import { atualizarLead, buscarLead } from './_leads.js';
+
 export async function entregarAcesso(pedido) {
   const { cliente, id, produtoId } = pedido;
 
@@ -20,8 +24,28 @@ export async function entregarAcesso(pedido) {
     pedido: id,
     produto: produtoId,
     email: cliente.email,
-    nome: cliente.nome
+    nome: cliente.nome,
+    origem: pedido.origem || 'site'
   });
+
+  /* Compra nascida no bot: o cliente está esperando resposta no chat, e é
+     ali que a entrega tem que aparecer — não só num e-mail. */
+  if (pedido.origem === 'telegram' && pedido.chatId && botConfigurado()) {
+    try {
+      const cfg = await lerConfig();
+      const produto = await buscarProduto(produtoId);
+      await enviar(pedido.chatId, preencher(cfg.bot.textoPosPagamento, {
+        produto: escapar(produto?.nome || 'seu produto'),
+        email: escapar(cliente.email),
+        loja: escapar(cfg.loja.nome)
+      }));
+      const lead = await buscarLead(pedido.chatId);
+      if (lead) await atualizarLead(pedido.chatId, { compras: (lead.compras || 0) + 1 });
+    } catch (e) {
+      /* A venda aconteceu: falha no aviso não pode derrubar a entrega. */
+      console.error('[entrega] não consegui avisar no Telegram:', e.message);
+    }
+  }
 
   /* Exemplo com Resend — descomente e configure RESEND_API_KEY:
 

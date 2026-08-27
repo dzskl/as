@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Painel — Bot 24h</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a141d">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231a9ee0'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a141d; --card:#12212e; --card-2:#0d1b26; --linha:rgba(255,255,255,.1);
+  --txt:#eaf2f8; --txt-2:#93a6b5; --txt-3:#5f7385;
+  /* Série do gráfico e status — validados contra a superfície #12212e */
+  --serie:#1a9ee0; --bom:#16a34a; --alerta:#d97706; --ruim:#dc2626;
+  --fonte:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+[hidden]{display:none!important}
+body{font-family:var(--fonte);background:var(--bg);color:var(--txt);line-height:1.5;-webkit-font-smoothing:antialiased}
+a{color:var(--serie)}
+button{font-family:inherit}
+
+/* ---------- Login ---------- */
+.login{min-height:100vh;display:grid;place-items:center;padding:20px}
+.login-caixa{width:100%;max-width:360px;background:var(--card);border:1px solid var(--linha);border-radius:16px;padding:32px}
+.login h1{font-size:1.3rem;margin-bottom:6px}
+.login p{color:var(--txt-2);font-size:.9rem;margin-bottom:22px}
+
+/* ---------- Estrutura ---------- */
+header{border-bottom:1px solid var(--linha);background:rgba(10,20,29,.92);position:sticky;top:0;z-index:20;backdrop-filter:blur(10px)}
+.topo{max-width:1180px;margin:0 auto;padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.marca{display:flex;align-items:center;gap:10px;font-weight:800}
+.marca span{width:30px;height:30px;border-radius:9px;background:var(--serie);display:grid;place-items:center;color:#04202f;font-weight:900}
+.abas{display:flex;gap:4px;overflow-x:auto}
+.abas button{background:none;border:0;color:var(--txt-2);font-size:.9rem;font-weight:600;padding:9px 14px;border-radius:9px;cursor:pointer;white-space:nowrap}
+.abas button:hover{color:var(--txt);background:rgba(255,255,255,.05)}
+.abas button[aria-current="true"]{background:rgba(26,158,224,.15);color:var(--serie)}
+main{max-width:1180px;margin:0 auto;padding:26px 20px 60px}
+@media(max-width:760px){.topo{height:auto;padding:12px 20px;flex-direction:column;align-items:stretch}}
+
+/* ---------- Componentes ---------- */
+.cartao{background:var(--card);border:1px solid var(--linha);border-radius:14px;padding:20px}
+.cartao+.cartao{margin-top:18px}
+h2{font-size:1.05rem;font-weight:700;margin-bottom:4px}
+.sub{color:var(--txt-2);font-size:.85rem;margin-bottom:18px}
+
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+@media(max-width:860px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--card);border:1px solid var(--linha);border-radius:14px;padding:18px}
+.tile .rot{font-size:.78rem;color:var(--txt-2);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.tile .num{font-size:1.9rem;font-weight:900;letter-spacing:-.02em;margin-top:6px;font-variant-numeric:tabular-nums}
+.tile .pe{font-size:.8rem;color:var(--txt-3);margin-top:2px}
+
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th{text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--txt-3);font-weight:700;padding:0 10px 10px}
+td{padding:11px 10px;border-top:1px solid var(--linha);vertical-align:middle}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+.rolagem{overflow-x:auto}
+.vazio{text-align:center;color:var(--txt-3);padding:34px 0;font-size:.9rem}
+
+.selo{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+/* Estado nunca vai só na cor: cada selo carrega ícone e palavra. */
+.selo.pago{background:rgba(22,163,74,.16);color:#4ade80}
+.selo.pendente{background:rgba(217,119,6,.16);color:#fbbf24}
+.selo.recusado,.selo.estornado,.selo.expirado{background:rgba(220,38,38,.16);color:#fca5a5}
+
+input,textarea,select{
+  width:100%;padding:11px 13px;border-radius:9px;background:var(--card-2);border:1px solid var(--linha);
+  color:var(--txt);font-family:inherit;font-size:.95rem;
+}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--serie);box-shadow:0 0 0 3px rgba(26,158,224,.2)}
+textarea{min-height:96px;resize:vertical;line-height:1.5}
+label{display:block;font-size:.82rem;font-weight:600;margin-bottom:6px}
+.campo{margin-bottom:16px}
+.dupla{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.dupla{grid-template-columns:1fr}}
+
+.btn{padding:11px 20px;border-radius:9px;border:0;font-weight:700;font-size:.9rem;cursor:pointer;
+  background:var(--serie);color:#04202f;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn:hover:not(:disabled){filter:brightness(1.08)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.largo{width:100%}
+.btn.secundario{background:rgba(255,255,255,.08);color:var(--txt)}
+.btn.perigo{background:rgba(220,38,38,.18);color:#fca5a5}
+
+.aviso{border-radius:10px;padding:12px 14px;font-size:.86rem;margin-bottom:12px}
+.aviso.erro{background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.35);color:#fca5a5}
+.aviso.ok{background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.35);color:#86efac}
+.aviso.atencao{background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.35);color:#fcd34d}
+
+/* ---------- Gráfico ---------- */
+.grafico{position:relative}
+/* Escala uniforme: com preserveAspectRatio="none" o SVG estica na horizontal
+   e deforma os rótulos. A proporção fixa mantém a geometria correta. */
+.grafico svg{width:100%;height:auto;aspect-ratio:900/230;display:block;overflow:visible}
+.grade{stroke:rgba(255,255,255,.07);stroke-width:1}
+.eixo{fill:var(--txt-3);font-size:10px}
+.barra{fill:var(--serie);transition:opacity .12s}
+.barra:hover{opacity:.75}
+.rotulo{fill:var(--txt);font-size:10px;font-weight:700;text-anchor:middle}
+.dica{
+  position:absolute;pointer-events:none;background:#0a141d;border:1px solid var(--linha);border-radius:9px;
+  padding:9px 12px;font-size:.8rem;white-space:nowrap;box-shadow:0 10px 30px -10px #000;opacity:0;transition:opacity .12s;z-index:5;
+}
+.dica b{display:block;font-size:.95rem;margin-bottom:2px}
+.dica span{color:var(--txt-2)}
+.faixa-tabela{margin-top:14px;font-size:.82rem;color:var(--txt-2)}
+.faixa-tabela summary{cursor:pointer;color:var(--serie);font-weight:600}
+.faixa-tabela table{margin-top:12px}
+
+.linha-topo{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.periodo{display:flex;gap:6px}
+.periodo button{background:var(--card-2);border:1px solid var(--linha);color:var(--txt-2);padding:7px 13px;
+  border-radius:8px;font-size:.83rem;font-weight:600;cursor:pointer}
+.periodo button[aria-pressed="true"]{border-color:var(--serie);color:var(--serie);background:rgba(26,158,224,.12)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;color:var(--txt-2)}
+.carregando{color:var(--txt-3);font-size:.9rem;padding:20px 0;text-align:center}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ==================== LOGIN ==================== -->
+<div class="login" id="tela-login">
+  <div class="login-caixa">
+    <h1>Painel</h1>
+    <p>Acesso restrito ao administrador da loja.</p>
+    <div class="aviso erro" id="erro-login" hidden></div>
+    <form id="form-login">
+      <div class="campo">
+        <label for="senha">Senha</label>
+        <input type="password" id="senha" autocomplete="current-password" required>
+      </div>
+      <button class="btn largo" type="submit">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- ==================== PAINEL ==================== -->
+<div id="tela-painel" hidden>
+  <header>
+    <div class="topo">
+      <div class="marca"><span>B</span> Painel</div>
+      <nav class="abas" id="abas">
+        <button data-aba="visao" aria-current="true">Visão geral</button>
+        <button data-aba="pedidos">Pedidos</button>
+        <button data-aba="contatos">Contatos</button>
+        <button data-aba="bot">Bot</button>
+        <button data-aba="config">Configuração</button>
+      </nav>
+      <button class="btn secundario" id="btn-sair">Sair</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="alertas"></div>
+
+    <!-- ---------- Visão geral ---------- -->
+    <section data-painel="visao">
+      <div class="tiles" id="tiles"></div>
+
+      <div class="cartao grafico">
+        <div class="linha-topo">
+          <div>
+            <h2>Receita por dia</h2>
+            <div class="sub" style="margin:0">Valores confirmados, em reais</div>
+          </div>
+          <div class="periodo" id="periodo">
+            <button data-dias="7">7 dias</button>
+            <button data-dias="14" aria-pressed="true">14 dias</button>
+            <button data-dias="30">30 dias</button>
+          </div>
+        </div>
+        <div id="grafico"><div class="carregando">Carregando…</div></div>
+        <div class="dica" id="dica"></div>
+        <details class="faixa-tabela">
+          <summary>Ver os números em tabela</summary>
+          <div class="rolagem" id="tabela-serie"></div>
+        </details>
+      </div>
+    </section>
+
+    <!-- ---------- Pedidos ---------- -->
+    <section data-painel="pedidos" hidden>
+      <div class="cartao">
+        <h2>Pedidos recentes</h2>
+        <div class="sub">Os 40 mais recentes, do mais novo para o mais antigo.</div>
+        <div class="rolagem" id="tabela-pedidos"></div>
+      </div>
+    </section>
+
+    <!-- ---------- Contatos ---------- -->
+    <section data-painel="contatos" hidden>
+      <div class="cartao">
+        <h2>Disparo em massa</h2>
+        <div class="sub">Envia a mensagem para quem já falou com o bot. Aceita *negrito* e _itálico_.</div>
+        <div id="aviso-disparo"></div>
+        <div class="campo">
+          <textarea id="msg-disparo" placeholder="Ex: Abrimos 10 vagas com 20% de desconto até domingo. Responda AQUI que eu te mando o link."></textarea>
+        </div>
+        <div class="campo">
+          <label><input type="checkbox" id="so-compradores" style="width:auto;margin-right:8px">Enviar só para quem já comprou</label>
+        </div>
+        <button class="btn" id="btn-disparo">Enviar disparo</button>
+      </div>
+
+      <div class="cartao">
+        <h2>Contatos do bot</h2>
+        <div class="sub">Todo mundo que iniciou uma conversa.</div>
+        <div class="rolagem" id="tabela-leads"></div>
+      </div>
+    </section>
+
+    <!-- ---------- Bot ---------- -->
+    <section data-painel="bot" hidden>
+      <div class="cartao">
+        <h2>Conexão do bot</h2>
+        <div class="sub">O bot funciona por webhook: o Telegram avisa o site a cada mensagem.</div>
+        <div id="aviso-bot"></div>
+        <div id="status-bot" class="carregando">Consultando o Telegram…</div>
+        <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+          <button class="btn" id="btn-conectar">Conectar / reconectar</button>
+          <button class="btn secundario" id="btn-status-bot">Atualizar status</button>
+          <button class="btn perigo" id="btn-desconectar">Desconectar</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ---------- Configuração ---------- -->
+    <section data-painel="config" hidden>
+      <div id="aviso-config"></div>
+
+      <div class="cartao">
+        <h2>Loja</h2>
+        <div class="sub">Aparece nas mensagens do bot e no suporte.</div>
+        <div class="dupla">
+          <div class="campo"><label for="cfg-nome">Nome da loja</label><input id="cfg-nome"></div>
+          <div class="campo"><label for="cfg-suporte">Suporte no Telegram (sem @)</label><input id="cfg-suporte"></div>
+        </div>
+        <div class="campo"><label for="cfg-email">E-mail de suporte</label><input id="cfg-email"></div>
+      </div>
+
+      <div class="cartao">
+        <h2>Produtos</h2>
+        <div class="sub">Preço vale para o site e para o bot. Use vírgula para os centavos.</div>
+        <div class="rolagem" id="tabela-produtos"></div>
+        <button class="btn secundario" id="btn-novo-produto" style="margin-top:14px">+ Novo produto</button>
+      </div>
+
+      <div class="cartao">
+        <h2>Mensagens do bot</h2>
+        <div class="sub">
+          Marcadores disponíveis: <span class="mono">{nome}</span> <span class="mono">{loja}</span>
+          <span class="mono">{produto}</span> <span class="mono">{email}</span> <span class="mono">{valor}</span>
+        </div>
+        <div class="campo"><label><input type="checkbox" id="cfg-bot-ativo" style="width:auto;margin-right:8px">Bot ativo (desmarque para pausar o atendimento)</label></div>
+        <div class="campo"><label for="cfg-boas">Boas-vindas</label><textarea id="cfg-boas"></textarea></div>
+        <div class="campo"><label for="cfg-catalogo">Texto do catálogo</label><textarea id="cfg-catalogo"></textarea></div>
+        <div class="campo"><label for="cfg-duvidas">Dúvidas frequentes</label><textarea id="cfg-duvidas"></textarea></div>
+        <div class="dupla">
+          <div class="campo"><label for="cfg-email-msg">Pedindo o e-mail</label><textarea id="cfg-email-msg"></textarea></div>
+          <div class="campo"><label for="cfg-cpf">Pedindo o CPF</label><textarea id="cfg-cpf"></textarea></div>
+        </div>
+        <div class="dupla">
+          <div class="campo"><label for="cfg-pix">Pix gerado</label><textarea id="cfg-pix"></textarea></div>
+          <div class="campo"><label for="cfg-pos">Pagamento confirmado</label><textarea id="cfg-pos"></textarea></div>
+        </div>
+      </div>
+
+      <button class="btn largo" id="btn-salvar-config">Salvar configuração</button>
+    </section>
+  </main>
+</div>
+
+<script type="module">
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+let dados = null, configAtual = null, produtosEdit = {}, dias = 14;
+
+/* --------------------------------------------------------------- rede */
+async function api(caminho, opcoes = {}) {
+  const r = await fetch(caminho, { credentials: 'same-origin', ...opcoes });
+  if (r.status === 401) { mostrarLogin(); throw new Error('Sessão expirada'); }
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || d.ok === false) throw new Error(d.erro || 'Falha na requisição');
+  return d;
+}
+
+function avisar(onde, texto, tipo = 'ok') {
+  const alvo = $(onde);
+  alvo.innerHTML = `<div class="aviso ${tipo}">${escapar(texto)}</div>`;
+  if (tipo === 'ok') setTimeout(() => { alvo.innerHTML = ''; }, 5000);
+}
+const escapar = t => String(t ?? '').replace(/[<>&"]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;' }[c]));
+const brl = v => 'R$ ' + v;
+const dataCurta = iso => {
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' }) + ' ' +
+         d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+};
+
+/* --------------------------------------------------------------- login */
+function mostrarLogin() { $('#tela-login').hidden = false; $('#tela-painel').hidden = true; }
+function mostrarPainel() { $('#tela-login').hidden = true; $('#tela-painel').hidden = false; carregar(); }
+
+$('#form-login').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  $('#erro-login').hidden = true;
+  /* Sem passar por api(): ali um 401 significa "sessão expirada", enquanto
+     aqui significa "senha errada" — e o cliente precisa ler a mensagem certa. */
+  try {
+    const r = await fetch('/api/painel-login', {
+      method: 'POST', credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senha: $('#senha').value })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(d.erro || 'Não foi possível entrar');
+    $('#senha').value = '';
+    mostrarPainel();
+  } catch (err) {
+    $('#erro-login').textContent = err.message;
+    $('#erro-login').hidden = false;
+  }
+});
+
+$('#btn-sair').addEventListener('click', async () => {
+  await fetch('/api/painel-login', { method: 'DELETE', credentials: 'same-origin' });
+  mostrarLogin();
+});
+
+/* ---------------------------------------------------------------- abas */
+$('#abas').addEventListener('click', (e) => {
+  const botao = e.target.closest('[data-aba]');
+  if (!botao) return;
+  $$('#abas button').forEach(b => b.setAttribute('aria-current', String(b === botao)));
+  $$('[data-painel]').forEach(s => s.hidden = s.dataset.painel !== botao.dataset.aba);
+  if (botao.dataset.aba === 'config') carregarConfig();
+  if (botao.dataset.aba === 'bot') statusBot();
+});
+
+/* ------------------------------------------------------------ carregar */
+async function carregar() {
+  try {
+    dados = await api(`/api/painel-dados?dias=${dias}`);
+  } catch { return; }
+
+  $('#alertas').innerHTML = dados.sistema.alertas
+    .map(a => `<div class="aviso atencao">⚠️ ${escapar(a)}</div>`).join('');
+
+  const r = dados.resumo;
+  $('#tiles').innerHTML = `
+    ${tile('Receita hoje', brl(r.hoje.receita), `${r.hoje.vendas} venda(s)`)}
+    ${tile('Últimos 7 dias', brl(r.sete.receita), `${r.sete.vendas} venda(s)`)}
+    ${tile('Últimos 30 dias', brl(r.trinta.receita), `${r.trinta.vendas} venda(s)`)}
+    ${tile('Contatos no bot', String(r.totalLeads), `${r.conversao}% dos pedidos pagos`)}
+  `;
+  desenharGrafico(dados.serie);
+  tabelaSerie(dados.serie);
+  tabelaPedidos(dados.pedidos);
+  tabelaLeads(dados.leads);
+}
+const tile = (rot, num, pe) =>
+  `<div class="tile"><div class="rot">${rot}</div><div class="num">${escapar(num)}</div><div class="pe">${escapar(pe)}</div></div>`;
+
+/* ------------------------------------------------------------- gráfico
+   Uma série só (receita): sem legenda — o título já diz o que é. Rótulo
+   direto apenas no maior valor, para dar escala sem poluir. */
+function desenharGrafico(serie) {
+  const L = 44, D = 8, T = 16, B = 26;      // margens
+  const largura = 900, altura = 230;
+  const areaL = largura - L - D, areaA = altura - T - B;
+  const maximo = Math.max(1, ...serie.map(d => d.receitaCentavos));
+  const passo = areaL / serie.length;
+  const largBarra = Math.max(3, Math.min(38, passo - 6));   // 6px = respiro entre barras
+
+  const linhas = [0, .5, 1].map(f => {
+    const y = T + areaA - areaA * f;
+    return `<line class="grade" x1="${L}" y1="${y}" x2="${largura - D}" y2="${y}"/>
+            <text class="eixo" x="${L - 8}" y="${y + 3}" text-anchor="end">${(maximo * f / 100).toFixed(0)}</text>`;
+  }).join('');
+
+  const indiceMax = serie.findIndex(d => d.receitaCentavos === maximo && maximo > 0);
+
+  const barras = serie.map((d, i) => {
+    const h = maximo ? (d.receitaCentavos / maximo) * areaA : 0;
+    const x = L + i * passo + (passo - largBarra) / 2;
+    const y = T + areaA - h;
+    const rotulo = i === indiceMax && maximo > 0
+      ? `<text class="rotulo" x="${x + largBarra / 2}" y="${y - 6}">${(maximo/100).toFixed(0)}</text>` : '';
+    /* rx cria a ponta arredondada; a barra continua ancorada na linha de base */
+    return `${rotulo}<rect class="barra" x="${x}" y="${y}" width="${largBarra}" height="${Math.max(h, d.receitaCentavos > 0 ? 3 : 0)}"
+             rx="4" data-i="${i}"><title>${d.dia}: R$ ${(d.receitaCentavos/100).toFixed(2)}</title></rect>`;
+  }).join('');
+
+  const passoRotulo = Math.ceil(serie.length / 7);
+  const datas = serie.map((d, i) => i % passoRotulo === 0
+    ? `<text class="eixo" x="${L + i * passo + passo/2}" y="${altura - 8}" text-anchor="middle">${d.dia.slice(8)}/${d.dia.slice(5,7)}</text>` : '').join('');
+
+  $('#grafico').innerHTML =
+    `<svg viewBox="0 0 ${largura} ${altura}" role="img"
+       aria-label="Receita diária dos últimos ${serie.length} dias">${linhas}${barras}${datas}</svg>`;
+
+  /* Camada de hover: alvo maior que a barra, para funcionar no toque. */
+  const svg = $('#grafico svg'), dica = $('#dica');
+  svg.addEventListener('mousemove', (ev) => {
+    const caixa = svg.getBoundingClientRect();
+    const rel = (ev.clientX - caixa.left) / caixa.width * largura;
+    const i = Math.floor((rel - L) / passo);
+    const d = serie[i];
+    if (!d) { dica.style.opacity = 0; return; }
+    dica.innerHTML = `<b>R$ ${(d.receitaCentavos/100).toFixed(2)}</b>
+      <span>${d.dia.split('-').reverse().join('/')} · ${d.vendas} venda(s) · ${d.pedidos} pedido(s)</span>`;
+    dica.style.opacity = 1;
+    dica.style.left = Math.min(caixa.width - 170, Math.max(0, ev.clientX - caixa.left - 60)) + 'px';
+    dica.style.top = (ev.clientY - caixa.top - 60) + 'px';
+  });
+  svg.addEventListener('mouseleave', () => { dica.style.opacity = 0; });
+}
+
+function tabelaSerie(serie) {
+  $('#tabela-serie').innerHTML = `<table><thead><tr><th>Dia</th><th>Pedidos</th><th>Vendas</th><th>Pelo bot</th><th>Receita</th></tr></thead><tbody>` +
+    serie.slice().reverse().map(d => `<tr>
+      <td>${d.dia.split('-').reverse().join('/')}</td><td>${d.pedidos}</td><td>${d.vendas}</td>
+      <td>${d.vendasBot}</td><td>R$ ${(d.receitaCentavos/100).toFixed(2)}</td></tr>`).join('') +
+    `</tbody></table>`;
+}
+
+$('#periodo').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-dias]'); if (!b) return;
+  $$('#periodo button').forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+  dias = Number(b.dataset.dias);
+  carregar();
+});
+
+/* ------------------------------------------------------------- tabelas */
+const ICONE = { pago:'✅', pendente:'⏳', recusado:'✕', estornado:'↩︎', expirado:'⌛' };
+const selo = s => `<span class="selo ${s}">${ICONE[s] || '•'} ${s}</span>`;
+
+function tabelaPedidos(pedidos) {
+  if (!pedidos.length) return $('#tabela-pedidos').innerHTML = '<div class="vazio">Nenhum pedido ainda.</div>';
+  $('#tabela-pedidos').innerHTML = `<table><thead><tr>
+    <th>Quando</th><th>Cliente</th><th>Produto</th><th>Origem</th><th>Valor</th><th>Status</th></tr></thead><tbody>` +
+    pedidos.map(p => `<tr>
+      <td>${dataCurta(p.criadoEm)}</td>
+      <td>${escapar(p.cliente.nome)}<br><span class="mono">${escapar(p.cliente.email)}</span></td>
+      <td>${escapar(p.produto)}</td>
+      <td>${p.origem === 'telegram' ? '🤖 bot' : '🌐 site'} · ${escapar(p.metodo)}</td>
+      <td>R$ ${escapar(p.valor)}</td>
+      <td>${selo(p.status)}</td></tr>`).join('') + `</tbody></table>`;
+}
+
+function tabelaLeads(leads) {
+  if (!leads.length) return $('#tabela-leads').innerHTML = '<div class="vazio">Ninguém falou com o bot ainda.</div>';
+  $('#tabela-leads').innerHTML = `<table><thead><tr>
+    <th>Nome</th><th>Usuário</th><th>E-mail</th><th>Msgs</th><th>Compras</th><th>Último contato</th></tr></thead><tbody>` +
+    leads.map(l => `<tr>
+      <td>${escapar(l.nome)}</td>
+      <td>${l.usuario ? '@' + escapar(l.usuario) : '<span class="mono">—</span>'}</td>
+      <td><span class="mono">${escapar(l.email || '—')}</span></td>
+      <td>${l.mensagens}</td><td>${l.compras}</td>
+      <td>${dataCurta(l.ultimoContato)}</td></tr>`).join('') + `</tbody></table>`;
+}
+
+/* -------------------------------------------------------------- disparo */
+$('#btn-disparo').addEventListener('click', async () => {
+  const mensagem = $('#msg-disparo').value.trim();
+  if (mensagem.length < 2) return avisar('#aviso-disparo', 'Escreva a mensagem antes de enviar.', 'erro');
+  const alvos = dados?.resumo.totalLeads || 0;
+  if (!confirm(`Enviar esta mensagem para até ${alvos} contato(s)? Não dá para cancelar depois de começar.`)) return;
+
+  const botao = $('#btn-disparo');
+  botao.disabled = true; botao.textContent = 'Enviando…';
+  try {
+    const r = await api('/api/painel-bot', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'disparo', mensagem, apenasCompradores: $('#so-compradores').checked })
+    });
+    avisar('#aviso-disparo', `Enviado para ${r.enviados} de ${r.alvos} contatos. ${r.falhas} falha(s) — normalmente quem bloqueou o bot.`);
+    $('#msg-disparo').value = '';
+  } catch (e) { avisar('#aviso-disparo', e.message, 'erro'); }
+  finally { botao.disabled = false; botao.textContent = 'Enviar disparo'; }
+});
+
+/* ------------------------------------------------------------------ bot */
+async function statusBot() {
+  $('#status-bot').textContent = 'Consultando o Telegram…';
+  try {
+    const r = await api('/api/painel-bot', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'status' })
+    });
+    $('#status-bot').innerHTML = `
+      <table><tbody>
+        <tr><td>Bot</td><td><b>@${escapar(r.bot.usuario)}</b> — ${escapar(r.bot.nome)}</td></tr>
+        <tr><td>Webhook</td><td>${r.webhook.conectado
+          ? '✅ conectado<br><span class="mono">' + escapar(r.webhook.url) + '</span>'
+          : '⚠️ não conectado'}</td></tr>
+        <tr><td>Na fila</td><td>${r.webhook.pendentes} atualização(ões)</td></tr>
+        ${r.webhook.ultimoErro ? `<tr><td>Último erro</td><td style="color:#fca5a5">${escapar(r.webhook.ultimoErro)}</td></tr>` : ''}
+      </tbody></table>
+      <p class="sub" style="margin:14px 0 0">Link para divulgar: <a href="https://t.me/${escapar(r.bot.usuario)}" target="_blank" rel="noopener">t.me/${escapar(r.bot.usuario)}</a></p>`;
+  } catch (e) {
+    $('#status-bot').innerHTML = `<div class="aviso erro">${escapar(e.message)}</div>`;
+  }
+}
+$('#btn-status-bot').addEventListener('click', statusBot);
+
+$('#btn-conectar').addEventListener('click', async () => {
+  try {
+    const r = await api('/api/painel-bot', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'conectar' })
+    });
+    avisar('#aviso-bot', 'Bot conectado em ' + r.url);
+    statusBot();
+  } catch (e) { avisar('#aviso-bot', e.message, 'erro'); }
+});
+
+$('#btn-desconectar').addEventListener('click', async () => {
+  if (!confirm('Desconectar o bot? Ele para de responder até você conectar de novo.')) return;
+  try {
+    await api('/api/painel-bot', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ acao: 'desconectar' })
+    });
+    avisar('#aviso-bot', 'Bot desconectado.');
+    statusBot();
+  } catch (e) { avisar('#aviso-bot', e.message, 'erro'); }
+});
+
+/* ----------------------------------------------------------- configuração */
+async function carregarConfig() {
+  try {
+    const r = await api('/api/painel-config');
+    configAtual = r.config;
+    produtosEdit = JSON.parse(JSON.stringify(r.produtos));
+
+    $('#cfg-nome').value = r.config.loja.nome;
+    $('#cfg-suporte').value = r.config.loja.suporteTelegram;
+    $('#cfg-email').value = r.config.loja.emailSuporte;
+    $('#cfg-bot-ativo').checked = r.config.bot.ativo !== false;
+    $('#cfg-boas').value = r.config.bot.boasVindas;
+    $('#cfg-catalogo').value = r.config.bot.textoCatalogo;
+    $('#cfg-duvidas').value = r.config.bot.textoDuvidas;
+    $('#cfg-email-msg').value = r.config.bot.pedirEmail;
+    $('#cfg-cpf').value = r.config.bot.pedirCpf;
+    $('#cfg-pix').value = r.config.bot.pixGerado;
+    $('#cfg-pos').value = r.config.bot.textoPosPagamento;
+    desenharProdutos();
+  } catch (e) { avisar('#aviso-config', e.message, 'erro'); }
+}
+
+function desenharProdutos() {
+  const linhas = Object.values(produtosEdit).map(p => `<tr data-id="${escapar(p.id)}">
+    <td><input data-campo="nome" value="${escapar(p.nome)}"></td>
+    <td><input data-campo="descricao" value="${escapar(p.descricao || '')}"></td>
+    <td style="width:120px"><input data-campo="valor" value="${(p.valorCentavos/100).toFixed(2).replace('.', ',')}" inputmode="decimal"></td>
+    <td style="width:90px"><label style="margin:0"><input type="checkbox" data-campo="ativo" ${p.ativo !== false ? 'checked' : ''} style="width:auto"> ativo</label></td>
+  </tr>`).join('');
+  $('#tabela-produtos').innerHTML = `<table><thead><tr><th>Nome</th><th>Descrição</th><th>Preço (R$)</th><th></th></tr></thead><tbody>${linhas}</tbody></table>`;
+}
+
+$('#btn-novo-produto').addEventListener('click', () => {
+  const id = 'produto-' + (Object.keys(produtosEdit).length + 1);
+  produtosEdit[id] = { id, nome: 'Novo produto', descricao: '', valorCentavos: 9700, maxParcelas: 12, ativo: true };
+  desenharProdutos();
+});
+
+$('#btn-salvar-config').addEventListener('click', async () => {
+  /* Lê a tabela de volta para o objeto antes de enviar. */
+  const produtos = {};
+  $$('#tabela-produtos tr[data-id]').forEach(tr => {
+    const id = tr.dataset.id;
+    const valor = tr.querySelector('[data-campo="valor"]').value.replace(/\./g,'').replace(',', '.');
+    produtos[id] = {
+      id,
+      nome: tr.querySelector('[data-campo="nome"]').value,
+      descricao: tr.querySelector('[data-campo="descricao"]').value,
+      valorCentavos: Math.round(Number(valor) * 100),
+      maxParcelas: produtosEdit[id]?.maxParcelas || 12,
+      ativo: tr.querySelector('[data-campo="ativo"]').checked
+    };
+  });
+
+  const botao = $('#btn-salvar-config');
+  botao.disabled = true; botao.textContent = 'Salvando…';
+  try {
+    await api('/api/painel-config', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        loja: { nome: $('#cfg-nome').value, suporteTelegram: $('#cfg-suporte').value, emailSuporte: $('#cfg-email').value },
+        bot: {
+          ativo: $('#cfg-bot-ativo').checked,
+          boasVindas: $('#cfg-boas').value, textoCatalogo: $('#cfg-catalogo').value,
+          textoDuvidas: $('#cfg-duvidas').value, pedirEmail: $('#cfg-email-msg').value,
+          pedirCpf: $('#cfg-cpf').value, pixGerado: $('#cfg-pix').value,
+          textoPosPagamento: $('#cfg-pos').value
+        },
+        produtos
+      })
+    });
+    avisar('#aviso-config', 'Configuração salva. Já vale para o site e para o bot.');
+    carregarConfig();
+  } catch (e) { avisar('#aviso-config', e.message, 'erro'); }
+  finally { botao.disabled = false; botao.textContent = 'Salvar configuração'; }
+});
+
+/* ------------------------------------------------------------- início */
+(async () => {
+  try {
+    const r = await (await fetch('/api/painel-login', { credentials: 'same-origin' })).json();
+    if (!r.configurado) {
+      $('#erro-login').textContent = 'Defina PAINEL_SENHA nas variáveis de ambiente da Vercel para usar o painel.';
+      $('#erro-login').hidden = false;
+      return mostrarLogin();
+    }
+    r.autenticado ? mostrarPainel() : mostrarLogin();
+  } catch { mostrarLogin(); }
+})();
+
+/* Atualiza sozinho enquanto a aba está visível. Pausa em segundo plano para
+   não gastar leitura do KV com a janela minimizada. */
+setInterval(() => {
+  if (!document.hidden && !$('#tela-painel').hidden) carregar();
+}, 30000);
+</script>
+</body>
+</html>

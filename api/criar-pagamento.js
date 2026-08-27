@@ -15,7 +15,8 @@
    ========================================================================= */
 
 import crypto from 'node:crypto';
-import { buscarProduto, opcoesParcelamento, CONFIG } from './_config.js';
+import { opcoesParcelamento, CONFIG } from './_config.js';
+import { buscarProduto } from './_configuracao.js';
 import { validarCliente, limpar } from './_validacao.js';
 import { criarPagamentoPix, criarPagamentoCartao, STATUS } from './_gateway.js';
 import { salvarPedido } from './_pedidos.js';
@@ -96,7 +97,7 @@ export default async function handler(req, res) {
   try { corpo = await lerJson(req); }
   catch { return erro(res, 400, 'Requisição inválida'); }
 
-  const produto = buscarProduto(corpo.produtoId);
+  const produto = await buscarProduto(corpo.produtoId);
   if (!produto) return erro(res, 400, 'Produto não encontrado');
 
   const metodo = corpo.metodo === 'cartao' ? 'cartao' : 'pix';

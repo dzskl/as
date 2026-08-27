@@ -5,14 +5,15 @@
    mostrar um preço e a cobrança sair com outro.
    ========================================================================= */
 
-import { buscarProduto, opcoesParcelamento, formatarBRL, CONFIG } from './_config.js';
+import { opcoesParcelamento, formatarBRL, CONFIG } from './_config.js';
+import { buscarProduto } from './_configuracao.js';
 import { json, erro } from './_http.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') return erro(res, 405, 'Método não permitido');
 
   const url = new URL(req.url, 'http://local');
-  const produto = buscarProduto(url.searchParams.get('id') || 'bot-24h');
+  const produto = await buscarProduto(url.searchParams.get('id') || 'bot-24h');
   if (!produto) return erro(res, 404, 'Produto não encontrado');
 
   return json(res, 200, {

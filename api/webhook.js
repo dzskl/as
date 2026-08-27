@@ -13,7 +13,7 @@
    ========================================================================= */
 
 import { verificarAssinaturaWebhook, lerEventoWebhook, STATUS } from './_gateway.js';
-import { buscarPedido, buscarPorIdGateway, atualizarPedido } from './_pedidos.js';
+import { buscarPedido, buscarPorIdGateway, atualizarPedido, registrarVenda } from './_pedidos.js';
 import { json, erro, lerCorpoBruto } from './_http.js';
 import { entregarAcesso } from './_entrega.js';
 
@@ -68,6 +68,7 @@ export default async function handler(req, res) {
 
   if (evento.status === STATUS.PAGO && !pedido.acessoEntregueEm) {
     try {
+      await registrarVenda(atualizado);
       await entregarAcesso(atualizado);
       await atualizarPedido(pedido.id, { acessoEntregueEm: new Date().toISOString() });
     } catch (e) {
