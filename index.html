@@ -7,7 +7,7 @@
 <title>Bot 24h — o atendente do seu Telegram que nunca dorme</title>
 <meta name="description" content="O Bot 24h responde seus clientes no Telegram em 1 segundo, envia catálogo e link de pagamento e guarda todos os contatos. Instala em 5 minutos, sem programar. Pagamento único, acesso vitalício.">
 <meta name="theme-color" content="#0a141d">
-<link rel="canonical" href="https://seudominio.com.br/">
+<link rel="canonical" data-empresa-href="siteBarra" href="https://seudominio.com.br/">
 
 <!-- Preview ao compartilhar o link (WhatsApp, Telegram, Instagram, Facebook) -->
 <meta property="og:type" content="website">
@@ -17,7 +17,7 @@
 <meta property="og:image" content="capa.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:url" content="https://seudominio.com.br/">
+<meta property="og:url" data-empresa-content="siteBarra" content="https://seudominio.com.br/">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
 
@@ -536,21 +536,21 @@ footer{border-top:1px solid var(--linha);padding:40px 0;font-size:.85rem;color:v
     <div class="grid g3">
       <div class="depo reveal">
         <div class="estrelas">★★★★★</div>
-        <p>“Eu perdia umas duas horas por dia respondendo a mesma coisa. Hoje o bot resolve tudo e só me chama
-        quando a pessoa realmente quer fechar. Recuperei minha manhã inteira.”</p>
-        <div class="autor"><div class="foto">MR</div><div><b>Marina R.</b><small>Loja de semijoias · Curitiba</small></div></div>
+        <p>“<span data-depoimento="0.texto">Eu perdia umas duas horas por dia respondendo a mesma coisa. Hoje o bot resolve tudo e só me chama
+        quando a pessoa realmente quer fechar. Recuperei minha manhã inteira.</span>”</p>
+        <div class="autor"><div class="foto" data-depoimento="0.iniciais">MR</div><div><b data-depoimento="0.autor">Marina R.</b><small data-depoimento="0.contexto">Loja de semijoias · Curitiba</small></div></div>
       </div>
       <div class="depo reveal">
         <div class="estrelas">★★★★★</div>
-        <p>“Confesso que achei que não ia funcionar pro meu caso. Na primeira semana fechei três vendas
-        que entraram depois das 22h — horário que eu simplesmente não atendia antes.”</p>
-        <div class="autor"><div class="foto">JS</div><div><b>Jonas S.</b><small>Mentoria de vendas · Belo Horizonte</small></div></div>
+        <p>“<span data-depoimento="1.texto">Confesso que achei que não ia funcionar pro meu caso. Na primeira semana fechei três vendas
+        que entraram depois das 22h — horário que eu simplesmente não atendia antes.</span>”</p>
+        <div class="autor"><div class="foto" data-depoimento="1.iniciais">JS</div><div><b data-depoimento="1.autor">Jonas S.</b><small data-depoimento="1.contexto">Mentoria de vendas · Belo Horizonte</small></div></div>
       </div>
       <div class="depo reveal">
         <div class="estrelas">★★★★★</div>
-        <p>“Não entendo nada de tecnologia e instalei sozinha assistindo o vídeo. Levei uns 15 minutos
-        porque parei pra tomar café no meio.”</p>
-        <div class="autor"><div class="foto">AC</div><div><b>Ana C.</b><small>Estúdio de pilates · Recife</small></div></div>
+        <p>“<span data-depoimento="2.texto">Não entendo nada de tecnologia e instalei sozinha assistindo o vídeo. Levei uns 15 minutos
+        porque parei pra tomar café no meio.</span>”</p>
+        <div class="autor"><div class="foto" data-depoimento="2.iniciais">AC</div><div><b data-depoimento="2.autor">Ana C.</b><small data-depoimento="2.contexto">Estúdio de pilates · Recife</small></div></div>
       </div>
     </div>
   </div>
@@ -607,7 +607,7 @@ footer{border-top:1px solid var(--linha);padding:40px 0;font-size:.85rem;color:v
       e sistema complicado demais até montar algo simples o bastante para qualquer pessoa instalar sozinha.</p>
       <p style="margin-top:14px">Hoje meu compromisso é esse: você paga uma vez, tem o bot para sempre e fala
       com uma pessoa de verdade quando precisar de ajuda. Qualquer dúvida antes de comprar,
-      <a href="https://t.me/seuusuario" target="_blank" rel="noopener" style="color:var(--azul);font-weight:600">me chama no Telegram</a>.</p>
+      <a data-empresa-href="telegramUrl" href="https://t.me/seuusuario" target="_blank" rel="noopener" style="color:var(--azul);font-weight:600">me chama no Telegram</a>.</p>
     </div>
   </div>
 </section>
@@ -681,11 +681,11 @@ footer{border-top:1px solid var(--linha);padding:40px 0;font-size:.85rem;color:v
 <footer>
   <div class="wrap">
     <div class="rodape">
-      <div>© <span id="ano"></span> SUA EMPRESA LTDA — CNPJ 00.000.000/0001-00</div>
+      <div>© <span id="ano"></span> <span data-empresa="rodapeLegal">SUA EMPRESA LTDA — CNPJ 00.000.000/0001-00</span></div>
       <div style="display:flex;gap:20px;flex-wrap:wrap">
         <a href="termos.html">Termos de uso</a>
         <a href="privacidade.html">Privacidade</a>
-        <a href="https://t.me/seuusuario" target="_blank" rel="noopener">Suporte no Telegram</a>
+        <a data-empresa-href="telegramUrl" href="https://t.me/seuusuario" target="_blank" rel="noopener">Suporte no Telegram</a>
       </div>
     </div>
     <p class="aviso">
@@ -739,5 +739,6 @@ if (LINK_CHECKOUT) {
   console.warn('Bot 24h: defina LINK_CHECKOUT no final do index.html antes de publicar.');
 }
 </script>
+<script type="module" src="conteudo/aplicar.js"></script>
 </body>
 </html>

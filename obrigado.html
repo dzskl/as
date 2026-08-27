@@ -78,21 +78,21 @@
     <div class="caixa">
       <h2 style="margin-top:0">Precisa de ajuda?</h2>
       <p>Travou em algum passo? Me chame direto no Telegram em
-      <a href="https://t.me/seuusuario" target="_blank" rel="noopener">@seuusuario</a> —
+      <a data-empresa-href="telegramUrl" data-empresa="telegramArroba" href="https://t.me/seuusuario" target="_blank" rel="noopener">@seuusuario</a> —
       respondo em até 24h em dias úteis. Se preferir e-mail:
-      <a href="mailto:suporte@seudominio.com.br">suporte@seudominio.com.br</a>.</p>
+      <a data-empresa-href="mailtoSuporte" data-empresa="emailSuporte" href="mailto:suporte@seudominio.com.br">suporte@seudominio.com.br</a>.</p>
       <p>Lembre-se: você tem <strong>7 dias de garantia</strong> a partir de hoje. Se não fizer sentido para o
       seu negócio, é só pedir o reembolso e devolvemos tudo.</p>
     </div>
 
     <div class="cta">
-      <a class="btn" href="https://t.me/seuusuario" target="_blank" rel="noopener">Falar com o suporte no Telegram</a>
+      <a class="btn" data-empresa-href="telegramUrl" href="https://t.me/seuusuario" target="_blank" rel="noopener">Falar com o suporte no Telegram</a>
     </div>
   </div>
 </main>
 
 <footer>
-  <div class="wrap">© <span id="ano"></span> SUA EMPRESA LTDA — CNPJ 00.000.000/0001-00</div>
+  <div class="wrap">© <span id="ano"></span> <span data-empresa="rodapeLegal">SUA EMPRESA LTDA — CNPJ 00.000.000/0001-00</span></div>
 </footer>
 <script>
 document.getElementById('ano').textContent=new Date().getFullYear();
@@ -124,5 +124,6 @@ document.getElementById('ano').textContent=new Date().getFullYear();
   } catch { /* sem API disponível: mantém a página estática */ }
 })();
 </script>
+<script type="module" src="conteudo/aplicar.js"></script>
 </body>
 </html>

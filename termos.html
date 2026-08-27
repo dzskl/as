@@ -35,7 +35,7 @@
     </div>
 
     <p>Estes Termos regulam a compra e o uso do <strong>Bot 24h</strong>, produto digital fornecido por
-    <strong>SUA EMPRESA LTDA</strong>, CNPJ 00.000.000/0001-00, com sede em [cidade/UF]
+    <strong data-empresa="razaoSocial">SUA EMPRESA LTDA</strong>, CNPJ <span data-empresa="cnpj">00.000.000/0001-00</span>, com sede em <span data-empresa="cidadeUF">[cidade/UF]</span>
     ("nós"). Ao finalizar a compra, você ("cliente") declara que leu e concorda com tudo o que está aqui.</p>
 
     <h2>1. O que você está comprando</h2>
@@ -93,17 +93,18 @@
     sempre a publicada nesta página, com a data de atualização no topo.</p>
 
     <h2>9. Foro e contato</h2>
-    <p>Estes Termos são regidos pelas leis brasileiras. Fica eleito o foro da comarca de [cidade/UF] para
+    <p>Estes Termos são regidos pelas leis brasileiras. Fica eleito o foro da comarca de <span data-empresa="cidadeUF">[cidade/UF]</span> para
     resolver eventuais controvérsias, salvo direito do consumidor de escolher o foro do seu domicílio.</p>
-    <p>Dúvidas: <a href="mailto:suporte@seudominio.com.br">suporte@seudominio.com.br</a> ou
-    <a href="https://t.me/seuusuario" target="_blank" rel="noopener">@seuusuario</a> no Telegram.</p>
+    <p>Dúvidas: <a data-empresa-href="mailtoSuporte" data-empresa="emailSuporte" href="mailto:suporte@seudominio.com.br">suporte@seudominio.com.br</a> ou
+    <a data-empresa-href="telegramUrl" data-empresa="telegramArroba" href="https://t.me/seuusuario" target="_blank" rel="noopener">@seuusuario</a> no Telegram.</p>
   </div>
 </main>
 
 <footer>
-  <div class="wrap">© <span id="ano"></span> SUA EMPRESA LTDA — CNPJ 00.000.000/0001-00 ·
+  <div class="wrap">© <span id="ano"></span> <span data-empresa="rodapeLegal">SUA EMPRESA LTDA — CNPJ 00.000.000/0001-00</span> ·
   <a href="privacidade.html">Política de privacidade</a></div>
 </footer>
 <script>document.getElementById('ano').textContent=new Date().getFullYear();</script>
+<script type="module" src="conteudo/aplicar.js"></script>
 </body>
 </html>

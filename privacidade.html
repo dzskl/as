@@ -34,7 +34,7 @@
       dos cookies.
     </div>
 
-    <p>Esta política explica como <strong>SUA EMPRESA LTDA</strong>, CNPJ 00.000.000/0001-00 ("nós"),
+    <p>Esta política explica como <strong data-empresa="razaoSocial">SUA EMPRESA LTDA</strong>, CNPJ <span data-empresa="cnpj">00.000.000/0001-00</span> ("nós"),
     trata os dados pessoais de quem visita este site e compra o <strong>Bot 24h</strong>, em conformidade com a
     Lei Geral de Proteção de Dados (Lei nº 13.709/2018).</p>
 
@@ -81,7 +81,7 @@
     <h2>7. Seus direitos</h2>
     <p>A LGPD garante a você o direito de confirmar a existência de tratamento, acessar, corrigir, anonimizar,
     portar ou excluir seus dados, revogar o consentimento e se opor a determinados usos. Para exercer qualquer
-    um deles, escreva para <a href="mailto:privacidade@seudominio.com.br">privacidade@seudominio.com.br</a>.
+    um deles, escreva para <a data-empresa-href="mailtoPrivacidade" data-empresa="emailPrivacidade" href="mailto:privacidade@seudominio.com.br">privacidade@seudominio.com.br</a>.
     Respondemos em até 15 dias.</p>
 
     <h2>8. Segurança</h2>
@@ -94,15 +94,16 @@
     e-mail de contato — e continuará recebendo apenas avisos essenciais sobre o produto que comprou.</p>
 
     <h2>10. Contato</h2>
-    <p>Encarregado de dados (DPO): [nome do responsável] ·
-    <a href="mailto:privacidade@seudominio.com.br">privacidade@seudominio.com.br</a></p>
+    <p>Encarregado de dados (DPO): <span data-empresa="encarregadoDados">[nome do responsável]</span> ·
+    <a data-empresa-href="mailtoPrivacidade" data-empresa="emailPrivacidade" href="mailto:privacidade@seudominio.com.br">privacidade@seudominio.com.br</a></p>
   </div>
 </main>
 
 <footer>
-  <div class="wrap">© <span id="ano"></span> SUA EMPRESA LTDA — CNPJ 00.000.000/0001-00 ·
+  <div class="wrap">© <span id="ano"></span> <span data-empresa="rodapeLegal">SUA EMPRESA LTDA — CNPJ 00.000.000/0001-00</span> ·
   <a href="termos.html">Termos de uso</a></div>
 </footer>
 <script>document.getElementById('ano').textContent=new Date().getFullYear();</script>
+<script type="module" src="conteudo/aplicar.js"></script>
 </body>
 </html>

@@ -27,16 +27,17 @@ var LINK_CHECKOUT = 'https://pay.kiwify.com.br/seu-produto';
 
 Todos os botões de compra passam a apontar para lá. Enquanto estiver vazio, eles só rolam até a seção de preço.
 
-**2. Dados da empresa.** Um localizar/substituir em todos os arquivos:
+**2. Dados da empresa.** Um arquivo só: **`conteudo/empresa.js`**. As quatro páginas
+(index, obrigado, termos, privacidade) leem dali e se atualizam sozinhas — não há mais
+localizar/substituir espalhado.
 
-| Trocar | Por |
-|---|---|
-| `SUA EMPRESA LTDA` | sua razão social |
-| `00.000.000/0001-00` | seu CNPJ |
-| `@seuusuario` e `t.me/seuusuario` | seu usuário do Telegram |
-| `seudominio.com.br` | seu domínio (e-mails e URLs) |
-| `[cidade/UF]` (termos.html) | sua cidade |
-| `[nome do responsável]` (privacidade.html) | quem responde por dados |
+```bash
+npm run conteudo   # lista o que ainda está com dado de exemplo
+```
+
+Enquanto houver campo na lista, a página não deve receber tráfego. Os depoimentos também
+saem desse arquivo: os três atuais são modelos de formato, e depoimento inventado é
+propaganda enganosa (CDC, art. 37).
 
 **3. Depoimentos.** Os três da seção "Quem colocou pra rodar" são **exemplos de formato** — está avisado
 num comentário no código. Troque pelos depoimentos reais dos seus clientes antes de anunciar. Print de conversa
