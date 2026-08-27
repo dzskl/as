@@ -13,6 +13,7 @@ import { listarLeads, totalLeads } from './_leads.js';
 import { lerConfig } from './_configuracao.js';
 import { CONFIG, formatarBRL } from './_config.js';
 import { botConfigurado } from './_telegram.js';
+import { modoEmail, pendenciaEmail } from './_email.js';
 
 async function handler(req, res, eu) {
   const url = new URL(req.url, 'http://local');
@@ -68,13 +69,15 @@ async function handler(req, res, eu) {
       diagnostico: CONFIG.diagnostico,
       cartaoDireto: CONFIG.cartaoDireto,
       bot: { token: botConfigurado(), ativo: cfg.bot.ativo },
+      email: modoEmail(),
       /* Avisos que o lojista precisa ver antes de descobrir vendendo. */
       alertas: [
         DRIVER === 'memoria' && 'Armazenamento em memória: os pedidos somem a cada reinício. Crie o KV na Vercel.',
         CONFIG.modoGateway === 'simulado' && 'Gateway em modo simulado: nenhum pagamento real acontece.',
         CONFIG.diagnostico && 'Diagnóstico ligado: mensagens internas aparecem para o cliente. Desligue em produção.',
         !botConfigurado() && 'Bot do Telegram sem token configurado.',
-        !process.env.URL_SITE && 'URL_SITE não configurada: o webhook do gateway sai com endereço errado.'
+        !process.env.URL_SITE && 'URL_SITE não configurada: o webhook do gateway sai com endereço errado.',
+        pendenciaEmail()
       ].filter(Boolean)
     }
   });
