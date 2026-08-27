@@ -14,7 +14,7 @@ import { lerConfig } from './_configuracao.js';
 import { CONFIG, formatarBRL } from './_config.js';
 import { botConfigurado } from './_telegram.js';
 
-async function handler(req, res) {
+async function handler(req, res, eu) {
   const url = new URL(req.url, 'http://local');
   const dias = Math.min(90, Math.max(7, Number(url.searchParams.get('dias')) || 14));
 
@@ -35,6 +35,7 @@ async function handler(req, res) {
 
   return json(res, 200, {
     ok: true,
+    eu,
     resumo: {
       hoje: { vendas: doDia.vendas, receita: formatarBRL(doDia.receitaCentavos), pedidos: doDia.pedidos },
       sete: { vendas: soma('vendas', 7), receita: formatarBRL(soma('receitaCentavos', 7)) },
@@ -79,4 +80,4 @@ async function handler(req, res) {
   });
 }
 
-export default protegido(handler);
+export default protegido('ver_painel', handler);

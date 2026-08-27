@@ -7,7 +7,8 @@
    ========================================================================= */
 
 import { protegido } from './_painel.js';
-import { json, erro, lerJson } from './_http.js';
+import { json, erro, lerJson, ipDoCliente } from './_http.js';
+import { registrar } from './_auditoria.js';
 import { chamar, configurarWebhook, infoWebhook, infoBot, enviar, botConfigurado } from './_telegram.js';
 import { listarLeads, totalLeads } from './_leads.js';
 import { CONFIG } from './_config.js';
@@ -39,7 +40,7 @@ async function disparar(mensagem, apenasCompradores) {
   return { alvos: alvos.length, enviados, falhas };
 }
 
-async function handler(req, res) {
+async function handler(req, res, eu) {
   if (req.method !== 'POST') return erro(res, 405, 'Método não permitido');
 
   if (!botConfigurado()) {
@@ -77,6 +78,7 @@ async function handler(req, res) {
       await configurarWebhook(`${base}/api/telegram`, segredo);
       /* Os comandos aparecem no menu "/" do app, então vale registrá-los
          junto: bot sem comandos visíveis parece quebrado. */
+      await registrar('bot_conectado', { quem: eu.email, ip: ipDoCliente(req), detalhe: `${base}/api/telegram` });
       await chamar('setMyCommands', {
         commands: [
           { command: 'start', description: 'Começar' },
@@ -91,6 +93,7 @@ async function handler(req, res) {
 
     if (corpo.acao === 'desconectar') {
       await chamar('deleteWebhook', { drop_pending_updates: false });
+      await registrar('bot_desconectado', { quem: eu.email, ip: ipDoCliente(req) });
       return json(res, 200, { ok: true });
     }
 
@@ -101,6 +104,10 @@ async function handler(req, res) {
       if (!(await totalLeads())) return erro(res, 400, 'Ainda não há contatos para enviar.');
 
       const resultado = await disparar(mensagem, Boolean(corpo.apenasCompradores));
+      await registrar('disparo', {
+        quem: eu.email, ip: ipDoCliente(req),
+        detalhe: `${resultado.enviados}/${resultado.alvos} contatos · "${mensagem.slice(0, 80)}"`
+      });
       return json(res, 200, { ok: true, ...resultado });
     }
 
@@ -112,4 +119,4 @@ async function handler(req, res) {
   }
 }
 
-export default protegido(handler);
+export default protegido('operar_bot', handler);

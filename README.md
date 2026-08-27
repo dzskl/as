@@ -249,10 +249,40 @@ O botão registra o webhook e os comandos do menu. A partir daí o bot responde.
 Preço editado no painel vale para o site e para o bot ao mesmo tempo — os dois leem da mesma
 fonte, e o valor continua sendo decidido no servidor.
 
+### Equipe, papéis e auditoria
+
+O painel tem **contas por pessoa**, não uma senha compartilhada. Com vários supervisores, senha
+única é o que impede responder à pergunta que sempre aparece: *quem mudou isso?*
+
+| Ação | Administrador | Supervisor | Operador |
+|---|:---:|:---:|:---:|
+| Ver vendas, pedidos e contatos | ✓ | ✓ | ✓ |
+| Disparar mensagens | ✓ | ✓ | — |
+| Conectar e pausar o bot | ✓ | ✓ | — |
+| Editar mensagens do bot | ✓ | ✓ | — |
+| Alterar preços e produtos | ✓ | — | — |
+| Ver auditoria | ✓ | ✓ | — |
+| Gerir a equipe | ✓ | — | — |
+
+O **primeiro administrador** nasce de `PAINEL_ADMIN_EMAIL` e `PAINEL_ADMIN_SENHA`, uma única vez —
+não existe tela pública de cadastro. As demais contas são criadas na aba **Equipe**.
+
+Toda ação que muda alguma coisa fica na aba **Auditoria**: quem, quando, de onde e o quê — com o
+detalhe que importa, do tipo `preço de Bot 24h: R$ 197,00 → R$ 247,00`. Tentativa de acesso
+recusada também é registrada.
+
+Duas travas evitam erro sem volta pela tela: ninguém rebaixa ou remove a própria conta, e a
+equipe nunca fica sem nenhum administrador ativo. Desativar alguém derruba o acesso na ação
+seguinte, sem esperar o cookie expirar.
+
 ### Segurança do painel e do bot
 
-- Painel protegido por senha (`PAINEL_SENHA`) com cookie assinado por HMAC — sem banco de
-  sessões, e um cookie forjado não passa. Login limitado a 5 tentativas por minuto por IP.
+- Senhas guardadas como **scrypt com sal aleatório** — nunca em texto, nunca reversíveis.
+- Sessão em cookie assinado por HMAC, sem banco de sessões; cookie forjado não passa.
+- Login recusado responde a mesma mensagem para conta inexistente, senha errada e conta
+  desativada — distinguir entregaria a lista de e-mails válidos.
+- O limite de tentativas conta **apenas as falhas**, por conta + IP: contar acesso bem-sucedido
+  travaria a equipe inteira de um escritório, que sai pelo mesmo IP.
 - O webhook do bot só aceita chamadas com o `secret_token` que registramos no Telegram.
 - O disparo em massa respeita o limite do Telegram (lotes com pausa): passar do limite faz o
   bot ser silenciado, o que é pior que um disparo lento.

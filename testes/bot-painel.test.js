@@ -30,7 +30,8 @@ process.env.TELEGRAM_API_BASE = 'http://127.0.0.1:3181/bot';
 process.env.GATEWAY_MODO = 'simulado';
 process.env.TELEGRAM_BOT_TOKEN = '123:ABC';
 process.env.TELEGRAM_WEBHOOK_SEGREDO = 'segredo-telegram';
-process.env.PAINEL_SENHA = 'senha-de-teste';
+process.env.PAINEL_ADMIN_EMAIL = 'admin@teste.com';
+process.env.PAINEL_ADMIN_SENHA = 'senhadeteste1';
 process.env.SEGREDO_APP = 'segredo-app-teste';
 process.env.URL_SITE = 'https://exemplo.com';
 
@@ -127,7 +128,7 @@ await teste('painel recusa acesso sem sessão', async () => {
 await teste('senha errada é recusada', async () => {
   const r = await fetch(base + '/api/painel-login', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ senha: 'chute' })
+    body: JSON.stringify({ email:'admin@teste.com', senha: 'chute' })
   });
   assert.equal(r.status, 401);
 });
@@ -135,7 +136,7 @@ await teste('senha errada é recusada', async () => {
 await teste('senha correta abre sessão', async () => {
   const r = await fetch(base + '/api/painel-login', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ senha: 'senha-de-teste' })
+    body: JSON.stringify({ email:'admin@teste.com', senha: 'senhadeteste1' })
   });
   assert.equal(r.status, 200);
   cookie = r.headers.get('set-cookie').split(';')[0];
@@ -143,7 +144,8 @@ await teste('senha correta abre sessão', async () => {
 });
 
 await teste('cookie forjado não vale', async () => {
-  const r = await fetch(base + '/api/painel-dados', { headers: { cookie: 'painel=99999999999999.assinaturafalsa' } });
+  const forjado = Buffer.from('99999999999999:admin@teste.com').toString('base64url') + '.assinaturafalsa';
+  const r = await fetch(base + '/api/painel-dados', { headers: { cookie: 'painel=' + forjado } });
   assert.equal(r.status, 401);
 });
 

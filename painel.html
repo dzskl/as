@@ -69,6 +69,12 @@ nav.menu button:hover{background:rgba(255,255,255,.04);color:var(--t1)}
 nav.menu button[aria-current="true"]{background:var(--marca-suave);color:var(--marca);font-weight:600}
 nav.menu svg{width:17px;height:17px;flex:0 0 17px;stroke:currentColor;fill:none;stroke-width:1.7;
   stroke-linecap:round;stroke-linejoin:round}
+.usuario-atual{padding:12px 16px;margin:0 12px 10px;background:var(--s2);border:1px solid var(--borda);
+  border-radius:10px;display:flex;align-items:center;gap:10px}
+.usuario-atual .av{width:30px;height:30px;border-radius:8px;background:var(--s3);display:grid;place-items:center;
+  font-weight:700;font-size:.78rem;color:var(--t2);flex:0 0 30px}
+.usuario-atual .nome{font-size:.82rem;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.usuario-atual .papel{font-size:.71rem;color:var(--t3)}
 .rodape-menu{padding:14px 20px;border-top:1px solid var(--borda);display:flex;align-items:center;
   justify-content:space-between;gap:10px;font-size:.78rem;color:var(--t3)}
 .pulso{display:inline-flex;align-items:center;gap:6px}
@@ -118,8 +124,11 @@ h2{font-size:.95rem;font-weight:650;letter-spacing:-.01em}
 .faisca{position:absolute;right:0;bottom:0;width:90px;height:34px;opacity:.5}
 
 table{width:100%;border-collapse:separate;border-spacing:0;font-size:.85rem}
-thead th{position:sticky;top:58px;background:var(--s2);text-align:left;font-size:.72rem;text-transform:uppercase;
-  letter-spacing:.04em;color:var(--t3);font-weight:650;padding:10px 14px;border-bottom:1px solid var(--borda);z-index:2}
+/* Sem sticky: o invólucro .tabela tem overflow-x para rolagem horizontal, e
+   isso o torna contexto de rolagem também na vertical. O cabeçalho grudava a
+   58px do topo DELE — não da janela — e cobria as primeiras linhas. */
+thead th{background:var(--s2);text-align:left;font-size:.72rem;text-transform:uppercase;
+  letter-spacing:.04em;color:var(--t3);font-weight:650;padding:10px 14px;border-bottom:1px solid var(--borda)}
 tbody td{padding:12px 14px;border-bottom:1px solid var(--borda);vertical-align:middle}
 tbody tr:last-child td{border-bottom:0}
 tbody tr:hover td{background:rgba(255,255,255,.025)}
@@ -177,6 +186,7 @@ textarea{min-height:92px;resize:vertical;line-height:1.55}
 .toast.ok{border-left:3px solid var(--bom)} .toast.erro{border-left:3px solid var(--ruim)}
 @keyframes entra{from{opacity:0;transform:translateY(6px)}}
 
+.sim{color:var(--bom-t);font-weight:700} .nao{color:var(--t3)}
 .vazio{text-align:center;padding:44px 20px;color:var(--t3)}
 .vazio svg{width:34px;height:34px;stroke:var(--t3);fill:none;stroke-width:1.5;margin-bottom:12px;opacity:.7}
 .vazio b{display:block;color:var(--t2);font-size:.9rem;margin-bottom:4px}
@@ -221,8 +231,12 @@ details.tabela-dados summary:hover{color:var(--t1)}
     <div class="faixa erro" id="erro-login" hidden></div>
     <form id="form-login">
       <div class="campo">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" autocomplete="username" required autofocus>
+      </div>
+      <div class="campo">
         <label for="senha">Senha</label>
-        <input type="password" id="senha" autocomplete="current-password" required autofocus>
+        <input type="password" id="senha" autocomplete="current-password" required>
       </div>
       <button class="btn largo" type="submit" id="btn-entrar">Entrar</button>
     </form>
@@ -245,9 +259,14 @@ details.tabela-dados summary:hover{color:var(--t1)}
         <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/></svg> Contatos</button>
       <button data-aba="bot">
         <svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M8 14h.01M16 14h.01"/></svg> Bot</button>
+      <button data-aba="equipe" data-permissao="gerir_equipe">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg> Equipe</button>
+      <button data-aba="auditoria" data-permissao="ver_auditoria">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Auditoria</button>
       <button data-aba="config">
         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9v0c.2.6.76 1 1.4 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Configuração</button>
     </nav>
+    <div class="usuario-atual" id="usuario-atual"></div>
     <div class="rodape-menu">
       <span class="pulso" id="saude"><b></b> ao vivo</span>
       <button class="btn fantasma pequeno" id="btn-sair">Sair</button>
@@ -353,6 +372,54 @@ details.tabela-dados summary:hover{color:var(--t1)}
         </div>
       </section>
 
+      <!-- ---------- Equipe ---------- -->
+      <section data-painel="equipe" hidden>
+        <div class="cartao">
+          <div class="cartao-topo">
+            <div><h2>Equipe</h2><div class="legenda">Cada pessoa com a própria conta — o histórico registra quem fez o quê</div></div>
+            <button class="btn pequeno" id="btn-nova-conta">+ Nova conta</button>
+          </div>
+          <div class="tabela" id="tabela-equipe"></div>
+        </div>
+
+        <div class="cartao" id="form-conta" hidden>
+          <div class="cartao-topo"><div><h2 id="titulo-conta">Nova conta</h2>
+            <div class="legenda">A pessoa entra com este e-mail e senha</div></div></div>
+          <div class="cartao-corpo">
+            <div class="dupla">
+              <div class="campo"><label for="nc-nome">Nome</label><input id="nc-nome" placeholder="Maria Silva"></div>
+              <div class="campo"><label for="nc-email">E-mail</label><input id="nc-email" type="email" placeholder="maria@empresa.com"></div>
+            </div>
+            <div class="dupla">
+              <div class="campo"><label for="nc-senha">Senha</label><input id="nc-senha" type="password" placeholder="mínimo 8 caracteres, com letra e número">
+                <div class="ajuda" id="ajuda-senha">Quem entrar poderá trocar depois.</div></div>
+              <div class="campo"><label for="nc-papel">Perfil</label><select id="nc-papel"></select>
+                <div class="ajuda" id="descricao-papel"></div></div>
+            </div>
+            <div class="acoes">
+              <button class="btn" id="btn-salvar-conta">Criar conta</button>
+              <button class="btn fantasma" id="btn-cancelar-conta">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cartao">
+          <div class="cartao-topo"><div><h2>O que cada perfil pode fazer</h2></div></div>
+          <div class="tabela" id="tabela-permissoes"></div>
+        </div>
+      </section>
+
+      <!-- ---------- Auditoria ---------- -->
+      <section data-painel="auditoria" hidden>
+        <div class="cartao">
+          <div class="cartao-topo">
+            <div><h2>Histórico de ações</h2><div class="legenda" id="legenda-auditoria">Tudo que a equipe fez no painel</div></div>
+            <button class="btn fantasma pequeno" id="btn-recarregar-auditoria">Atualizar</button>
+          </div>
+          <div class="tabela" id="tabela-auditoria"></div>
+        </div>
+      </section>
+
       <!-- ---------- Configuração ---------- -->
       <section data-painel="config" hidden>
         <div class="cartao">
@@ -410,8 +477,27 @@ details.tabela-dados summary:hover{color:var(--t1)}
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
 let dados = null, produtosEdit = {}, dias = 14, atualizadoEm = null;
+let eu = null, papeisDisponiveis = [], editandoConta = null;
 
-const TITULOS = { visao:'Visão geral', pedidos:'Pedidos', contatos:'Contatos', bot:'Bot', config:'Configuração' };
+const TITULOS = { visao:'Visão geral', pedidos:'Pedidos', contatos:'Contatos', bot:'Bot',
+                  equipe:'Equipe', auditoria:'Auditoria', config:'Configuração' };
+
+/* Espelho da regra do servidor, só para esconder o que a pessoa não pode
+   usar. Quem decide de verdade é o servidor — isto é conveniência, não
+   segurança: um botão escondido não protege nada sozinho. */
+const PERMISSOES = {
+  ver_painel:['admin','supervisor','operador'], ver_contatos:['admin','supervisor','operador'],
+  disparar:['admin','supervisor'], operar_bot:['admin','supervisor'],
+  editar_mensagens:['admin','supervisor'], editar_precos:['admin'],
+  gerir_equipe:['admin'], ver_auditoria:['admin','supervisor']
+};
+const posso = p => eu && (PERMISSOES[p] || []).includes(eu.papel);
+
+const DESCRICAO_PAPEL = {
+  admin: 'Acesso total: preços, produtos, equipe e todas as operações.',
+  supervisor: 'Opera o dia a dia: vê tudo, dispara mensagens e controla o bot. Não altera preços nem a equipe.',
+  operador: 'Somente leitura: acompanha vendas, pedidos e contatos.'
+};
 
 /* ------------------------------------------------------------------ rede */
 async function api(caminho, opcoes = {}) {
@@ -437,7 +523,28 @@ const reais = c => (c/100).toLocaleString('pt-BR', { minimumFractionDigits:2, ma
 
 /* ----------------------------------------------------------------- login */
 function mostrarLogin(){ $('#tela-login').hidden = false; $('#tela-painel').hidden = true; }
-function mostrarPainel(){ $('#tela-login').hidden = true; $('#tela-painel').hidden = false; carregar(); }
+function mostrarPainel(){
+  $('#tela-login').hidden = true;
+  $('#tela-painel').hidden = false;
+  aplicarPermissoes();
+  carregar();
+}
+
+/* Esconde do menu o que o perfil não alcança, e identifica quem está logado —
+   com várias pessoas no painel, saber em qual conta você está evita confusão. */
+function aplicarPermissoes() {
+  if (!eu) return;
+  $('#usuario-atual').innerHTML = `
+    <div class="av">${esc((eu.nome || eu.email).slice(0,2).toUpperCase())}</div>
+    <div style="min-width:0">
+      <div class="nome" title="${esc(eu.email)}">${esc(eu.nome || eu.email)}</div>
+      <div class="papel">${esc(eu.papelNome || eu.papel)}</div>
+    </div>`;
+  $$('#menu button[data-permissao]').forEach(b => { b.hidden = !posso(b.dataset.permissao); });
+  /* Se a aba aberta deixou de ser permitida, volta para a visão geral. */
+  const atual = $('#menu button[aria-current="true"]');
+  if (atual?.hidden) $('#menu button[data-aba="visao"]').click();
+}
 
 $('#form-login').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -450,11 +557,12 @@ $('#form-login').addEventListener('submit', async (e) => {
     const r = await fetch('/api/painel-login', {
       method:'POST', credentials:'same-origin',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ senha: $('#senha').value })
+      body: JSON.stringify({ email: $('#email').value, senha: $('#senha').value })
     });
     const d = await r.json().catch(() => ({}));
     if (!r.ok) throw new Error(d.erro || 'Não foi possível entrar');
     $('#senha').value = '';
+    eu = d.usuario;
     mostrarPainel();
   } catch (err) {
     $('#erro-login').textContent = err.message;
@@ -476,6 +584,8 @@ $('#menu').addEventListener('click', (e) => {
   $('#lateral').dataset.aberto = 'false';
   if (b.dataset.aba === 'config') carregarConfig();
   if (b.dataset.aba === 'bot') statusBot();
+  if (b.dataset.aba === 'equipe') carregarEquipe();
+  if (b.dataset.aba === 'auditoria') carregarAuditoria();
 });
 $('#btn-menu').addEventListener('click', () => {
   const l = $('#lateral');
@@ -500,6 +610,7 @@ async function carregar() {
     dados = await api(`/api/painel-dados?dias=${Math.min(90, dias * 2)}`);
   } catch { return; }
 
+  if (dados.eu) { eu = { ...eu, ...dados.eu }; }
   atualizadoEm = new Date();
   $('#tag-atualizado').textContent = 'atualizado ' + atualizadoEm.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
 
@@ -738,6 +849,149 @@ $('#btn-desconectar').addEventListener('click', async () => {
   } catch (e) { toast(e.message, 'erro'); }
 });
 
+/* ----------------------------------------------------------------- equipe */
+async function carregarEquipe() {
+  try {
+    const r = await api('/api/painel-equipe');
+    papeisDisponiveis = r.papeis;
+
+    $('#nc-papel').innerHTML = r.papeis.map(p => `<option value="${p.id}">${esc(p.nome)}</option>`).join('');
+    atualizarDescricaoPapel();
+
+    $('#tabela-equipe').innerHTML = `<table><thead><tr>
+      <th>Pessoa</th><th>Perfil</th><th>Último acesso</th><th>Situação</th><th class="dir">Ações</th>
+      </tr></thead><tbody>` + r.usuarios.map(u => `<tr data-email="${esc(u.email)}">
+        <td><div>${esc(u.nome)}${u.souEu ? ' <span class="tag">você</span>' : ''}</div>
+            <div class="mono">${esc(u.email)}</div></td>
+        <td>${esc(u.papelNome)}</td>
+        <td class="num">${u.ultimoAcesso ? dataHora(u.ultimoAcesso) : '<span class="nao">nunca entrou</span>'}</td>
+        <td>${u.ativo ? '<span class="pill pago">✓ ativa</span>' : '<span class="pill recusado">✕ desativada</span>'}</td>
+        <td class="dir">
+          <button class="btn fantasma pequeno" data-acao="editar">Editar</button>
+          ${u.souEu ? '' : `<button class="btn fantasma pequeno" data-acao="alternar">${u.ativo ? 'Desativar' : 'Reativar'}</button>
+          <button class="btn risco pequeno" data-acao="remover">Remover</button>`}
+        </td></tr>`).join('') + '</tbody></table>';
+
+    $('#tabela-permissoes').innerHTML = `<table><thead><tr><th>O que pode fazer</th>` +
+      r.papeis.map(p => `<th class="dir">${esc(p.nome)}</th>`).join('') + `</tr></thead><tbody>` +
+      [['Ver vendas e pedidos','ver_painel'],['Ver contatos','ver_contatos'],
+       ['Disparar mensagens','disparar'],['Conectar e pausar o bot','operar_bot'],
+       ['Editar mensagens do bot','editar_mensagens'],['Alterar preços e produtos','editar_precos'],
+       ['Ver auditoria','ver_auditoria'],['Gerir a equipe','gerir_equipe']]
+      .map(([rotulo, chave]) => `<tr><td>${rotulo}</td>` +
+        r.papeis.map(p => `<td class="dir">${(PERMISSOES[chave]||[]).includes(p.id)
+          ? '<span class="sim">✓</span>' : '<span class="nao">—</span>'}</td>`).join('') + '</tr>').join('') +
+      '</tbody></table>';
+  } catch (e) { toast(e.message, 'erro'); }
+}
+
+function atualizarDescricaoPapel() {
+  $('#descricao-papel').textContent = DESCRICAO_PAPEL[$('#nc-papel').value] || '';
+}
+$('#nc-papel').addEventListener('change', atualizarDescricaoPapel);
+
+function abrirFormConta(usuario) {
+  editandoConta = usuario || null;
+  $('#form-conta').hidden = false;
+  $('#titulo-conta').textContent = usuario ? 'Editar ' + usuario.nome : 'Nova conta';
+  $('#nc-nome').value = usuario?.nome || '';
+  $('#nc-email').value = usuario?.email || '';
+  $('#nc-email').disabled = Boolean(usuario);      // e-mail identifica a conta
+  $('#nc-senha').value = '';
+  $('#ajuda-senha').textContent = usuario
+    ? 'Deixe em branco para manter a senha atual.'
+    : 'Mínimo 8 caracteres, com letra e número.';
+  $('#nc-papel').value = usuario?.papel || 'supervisor';
+  atualizarDescricaoPapel();
+  $('#btn-salvar-conta').textContent = usuario ? 'Salvar alterações' : 'Criar conta';
+  $('#form-conta').scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+$('#btn-nova-conta').addEventListener('click', () => abrirFormConta(null));
+$('#btn-cancelar-conta').addEventListener('click', () => { $('#form-conta').hidden = true; editandoConta = null; });
+
+$('#tabela-equipe').addEventListener('click', async (ev) => {
+  const botao = ev.target.closest('[data-acao]'); if (!botao) return;
+  const email = botao.closest('tr').dataset.email;
+  const linha = botao.closest('tr');
+  const acao = botao.dataset.acao;
+
+  if (acao === 'editar') {
+    const nome = linha.querySelector('td div').childNodes[0].textContent.trim();
+    const papel = papeisDisponiveis.find(p => p.nome === linha.children[1].textContent.trim())?.id;
+    return abrirFormConta({ email, nome, papel });
+  }
+  if (acao === 'alternar') {
+    const ativando = botao.textContent.trim() === 'Reativar';
+    try {
+      await api('/api/painel-equipe', { method:'PATCH', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email, ativo: ativando }) });
+      toast(ativando ? 'Conta reativada.' : 'Conta desativada. O acesso cai na próxima ação dela.');
+      carregarEquipe();
+    } catch (e) { toast(e.message, 'erro'); }
+  }
+  if (acao === 'remover') {
+    if (!confirm(`Remover a conta ${email}? Isso não apaga o histórico de ações dela.`)) return;
+    try {
+      await api('/api/painel-equipe?email=' + encodeURIComponent(email), { method:'DELETE' });
+      toast('Conta removida.');
+      carregarEquipe();
+    } catch (e) { toast(e.message, 'erro'); }
+  }
+});
+
+$('#btn-salvar-conta').addEventListener('click', async () => {
+  const corpo = {
+    email: $('#nc-email').value.trim(),
+    nome: $('#nc-nome').value.trim(),
+    papel: $('#nc-papel').value
+  };
+  if ($('#nc-senha').value) corpo.senha = $('#nc-senha').value;
+
+  const b = $('#btn-salvar-conta');
+  b.disabled = true;
+  try {
+    if (editandoConta) {
+      await api('/api/painel-equipe', { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify(corpo) });
+      toast('Conta atualizada.');
+    } else {
+      await api('/api/painel-equipe', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(corpo) });
+      toast('Conta criada. Passe o e-mail e a senha para a pessoa.');
+    }
+    $('#form-conta').hidden = true; editandoConta = null;
+    carregarEquipe();
+  } catch (e) { toast(e.message, 'erro'); }
+  finally { b.disabled = false; }
+});
+
+/* -------------------------------------------------------------- auditoria */
+const ICONE_ACAO = {
+  login:'→', login_falho:'⚠', logout:'←', config_salva:'✎', disparo:'📣',
+  bot_conectado:'🔌', bot_desconectado:'⏻', usuario_criado:'＋',
+  usuario_alterado:'✎', usuario_removido:'✕'
+};
+
+async function carregarAuditoria() {
+  $('#tabela-auditoria').innerHTML = `<div class="cartao-corpo"><div class="esq" style="height:120px"></div></div>`;
+  try {
+    const r = await api('/api/painel-auditoria');
+    $('#legenda-auditoria').textContent = `${r.total} ação(ões) registradas`;
+    if (!r.eventos.length) return $('#tabela-auditoria').innerHTML =
+      vazio('Nada registrado ainda', 'As ações da equipe aparecem aqui assim que acontecerem.');
+
+    $('#tabela-auditoria').innerHTML = `<table><thead><tr>
+      <th>Quando</th><th>Quem</th><th>Ação</th><th>Detalhe</th><th>Origem</th>
+      </tr></thead><tbody>` + r.eventos.map(e => `<tr>
+        <td class="num">${dataHora(e.quando)}</td>
+        <td class="mono">${esc(e.quem)}</td>
+        <td>${ICONE_ACAO[e.acao] || '•'} ${esc(e.rotulo)}</td>
+        <td>${esc(e.detalhe || '—')}</td>
+        <td class="mono">${esc(e.ip || '—')}</td>
+      </tr>`).join('') + '</tbody></table>';
+  } catch (e) { toast(e.message, 'erro'); }
+}
+$('#btn-recarregar-auditoria').addEventListener('click', carregarAuditoria);
+
 /* ----------------------------------------------------------- configuração */
 async function carregarConfig() {
   try {
@@ -759,13 +1013,17 @@ async function carregarConfig() {
 }
 
 function desenharProdutos() {
+  /* Sem permissão de preço, a tabela vira leitura: melhor mostrar o valor
+     desabilitado do que esconder e deixar o supervisor sem contexto. */
+  const trava = posso('editar_precos') ? '' : ' disabled';
+  $('#btn-novo-produto').hidden = !posso('editar_precos');
   $('#tabela-produtos').innerHTML = `<table><thead><tr>
     <th style="width:26%">Nome</th><th>Descrição</th><th style="width:130px" class="dir">Preço (R$)</th><th style="width:100px">Estado</th>
     </tr></thead><tbody>` + Object.values(produtosEdit).map(p => `<tr data-id="${esc(p.id)}">
-      <td><input data-campo="nome" value="${esc(p.nome)}"></td>
-      <td><input data-campo="descricao" value="${esc(p.descricao || '')}"></td>
-      <td><input data-campo="valor" class="num dir" inputmode="decimal" value="${(p.valorCentavos/100).toFixed(2).replace('.', ',')}"></td>
-      <td><label class="marcavel"><input type="checkbox" data-campo="ativo" ${p.ativo !== false ? 'checked' : ''}> ativo</label></td>
+      <td><input data-campo="nome" value="${esc(p.nome)}"${trava}></td>
+      <td><input data-campo="descricao" value="${esc(p.descricao || '')}"${trava}></td>
+      <td><input data-campo="valor" class="num dir" inputmode="decimal" value="${(p.valorCentavos/100).toFixed(2).replace('.', ',')}"${trava}></td>
+      <td><label class="marcavel"><input type="checkbox" data-campo="ativo" ${p.ativo !== false ? 'checked' : ''}${trava}> ativo</label></td>
     </tr>`).join('') + '</tbody></table>';
 }
 
@@ -803,7 +1061,7 @@ $('#btn-salvar-config').addEventListener('click', async () => {
           pedirEmail:$('#cfg-email-msg').value, pedirCpf:$('#cfg-cpf').value,
           pixGerado:$('#cfg-pix').value, textoPosPagamento:$('#cfg-pos').value
         },
-        produtos
+        ...(posso('editar_precos') ? { produtos } : {})
       })
     });
     toast('Configuração salva. Já vale para o site e para o bot.');
@@ -821,6 +1079,7 @@ $('#btn-salvar-config').addEventListener('click', async () => {
       $('#erro-login').hidden = false;
       return mostrarLogin();
     }
+    eu = r.usuario;
     r.autenticado ? mostrarPainel() : mostrarLogin();
   } catch { mostrarLogin(); }
 })();

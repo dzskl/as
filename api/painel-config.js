@@ -8,9 +8,11 @@
    ========================================================================= */
 
 import { protegido } from './_painel.js';
-import { json, erro, lerJson } from './_http.js';
+import { json, erro, lerJson, ipDoCliente } from './_http.js';
 import { lerConfig, salvarConfig, CONFIG_PADRAO } from './_configuracao.js';
 import { PRODUTOS } from './_config.js';
+import { pode } from './_usuarios.js';
+import { registrar, descreverMudancas } from './_auditoria.js';
 
 /* Preço chega do navegador aqui — e só aqui, vindo de um administrador
    autenticado. Ainda assim é validado: um erro de digitação que grave 0
@@ -52,7 +54,7 @@ function limparTextos(bot) {
   return saida;
 }
 
-async function handler(req, res) {
+async function handler(req, res, eu) {
   if (req.method === 'GET') {
     const config = await lerConfig();
     return json(res, 200, {
@@ -84,13 +86,23 @@ async function handler(req, res) {
   if (corpo.bot) mudancas.bot = limparTextos(corpo.bot);
 
   if (corpo.produtos) {
+    /* Preço é a única coisa aqui que muda quanto entra de dinheiro. Supervisor
+       edita mensagens; alterar catálogo e valor é do administrador. */
+    if (!pode(eu.papel, 'editar_precos')) {
+      return erro(res, 403, 'Somente administradores podem alterar produtos e preços.');
+    }
     const produtos = validarProdutos(corpo.produtos);
     if (!produtos) return erro(res, 422, 'Confira os produtos: o valor precisa ficar entre R$ 1,00 e R$ 50.000,00.');
     mudancas.produtos = produtos;
   }
 
+  const antes = await lerConfig();
   const salvo = await salvarConfig(mudancas);
+  await registrar('config_salva', {
+    quem: eu.email, ip: ipDoCliente(req),
+    detalhe: descreverMudancas({ ...antes, produtos: antes.produtos || PRODUTOS }, salvo)
+  });
   return json(res, 200, { ok: true, config: salvo });
 }
 
-export default protegido(handler);
+export default protegido('editar_mensagens', handler);
