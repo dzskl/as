@@ -6,7 +6,7 @@
   "description": "Página de vendas + checkout próprio do Bot 24h",
   "scripts": {
     "dev": "node testes/servidor-local.js",
-    "teste": "node testes/privacidade.test.js && node testes/fluxo.test.js && node testes/webhook-seguranca.test.js && node testes/bot-painel.test.js && node testes/equipe.test.js"
+    "teste": "node testes/privacidade.test.js && node testes/fluxo.test.js && node testes/webhook-seguranca.test.js && node testes/bot-painel.test.js && node testes/equipe.test.js && node testes/painel-visual.test.js"
   },
   "engines": { "node": ">=20" }
 }
