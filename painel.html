@@ -5,121 +5,208 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Painel — Bot 24h</title>
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#0a141d">
+<meta name="theme-color" content="#0b1016">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%231a9ee0'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* =========================================================================
+   Sistema de design do painel.
+   Superfícies em cinza-azulado quase neutro, elevação por camada e não por
+   sombra pesada, e uma única cor de marca. A cor da série do gráfico e as
+   de estado foram validadas contra a superfície #141b24 (banda de
+   luminosidade, contraste e separação para daltonismo).
+   ========================================================================= */
 :root{
-  --bg:#0a141d; --card:#12212e; --card-2:#0d1b26; --linha:rgba(255,255,255,.1);
-  --txt:#eaf2f8; --txt-2:#93a6b5; --txt-3:#5f7385;
-  /* Série do gráfico e status — validados contra a superfície #12212e */
-  --serie:#1a9ee0; --bom:#16a34a; --alerta:#d97706; --ruim:#dc2626;
-  --fonte:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  /* superfícies, da mais funda para a mais alta */
+  --s0:#0b1016; --s1:#0f151c; --s2:#141b24; --s3:#1a2330;
+  --borda:rgba(255,255,255,.07); --borda-forte:rgba(255,255,255,.13);
+  /* tinta */
+  --t1:#e8eef4; --t2:#9aabbc; --t3:#647689;
+  /* marca e estados */
+  --marca:#1a9ee0; --marca-suave:rgba(26,158,224,.12);
+  --bom:#16a34a; --bom-t:#4ade80; --atencao:#d97706; --atencao-t:#fbbf24;
+  --ruim:#dc2626; --ruim-t:#f87171;
+  --raio:10px; --raio-g:14px;
+  --f:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --sombra:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
 }
 *{margin:0;padding:0;box-sizing:border-box}
 [hidden]{display:none!important}
-body{font-family:var(--fonte);background:var(--bg);color:var(--txt);line-height:1.5;-webkit-font-smoothing:antialiased}
-a{color:var(--serie)}
-button{font-family:inherit}
+html{-webkit-text-size-adjust:100%}
+body{font-family:var(--f);background:var(--s0);color:var(--t1);line-height:1.5;
+  font-size:14px;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font-family:inherit;font-size:inherit}
+a{color:var(--marca);text-decoration:none}
+:focus-visible{outline:2px solid var(--marca);outline-offset:2px;border-radius:4px}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82em;color:var(--t2)}
 
-/* ---------- Login ---------- */
-.login{min-height:100vh;display:grid;place-items:center;padding:20px}
-.login-caixa{width:100%;max-width:360px;background:var(--card);border:1px solid var(--linha);border-radius:16px;padding:32px}
-.login h1{font-size:1.3rem;margin-bottom:6px}
-.login p{color:var(--txt-2);font-size:.9rem;margin-bottom:22px}
+/* ---------------------------------------------------------------- login */
+.login{min-height:100dvh;display:grid;place-items:center;padding:24px;
+  background:radial-gradient(1200px 500px at 50% -10%, rgba(26,158,224,.10), transparent 60%)}
+.login-caixa{width:100%;max-width:380px;background:var(--s2);border:1px solid var(--borda);
+  border-radius:var(--raio-g);padding:34px 32px;box-shadow:var(--sombra)}
+.login-marca{display:flex;align-items:center;gap:11px;margin-bottom:26px}
+.login-marca i{width:36px;height:36px;border-radius:10px;background:var(--marca);display:grid;
+  place-items:center;font-style:normal;font-weight:800;color:#04202f}
+.login h1{font-size:1.15rem;font-weight:700;letter-spacing:-.01em}
+.login .dica{color:var(--t3);font-size:.82rem;margin-top:2px}
 
-/* ---------- Estrutura ---------- */
-header{border-bottom:1px solid var(--linha);background:rgba(10,20,29,.92);position:sticky;top:0;z-index:20;backdrop-filter:blur(10px)}
-.topo{max-width:1180px;margin:0 auto;padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.marca{display:flex;align-items:center;gap:10px;font-weight:800}
-.marca span{width:30px;height:30px;border-radius:9px;background:var(--serie);display:grid;place-items:center;color:#04202f;font-weight:900}
-.abas{display:flex;gap:4px;overflow-x:auto}
-.abas button{background:none;border:0;color:var(--txt-2);font-size:.9rem;font-weight:600;padding:9px 14px;border-radius:9px;cursor:pointer;white-space:nowrap}
-.abas button:hover{color:var(--txt);background:rgba(255,255,255,.05)}
-.abas button[aria-current="true"]{background:rgba(26,158,224,.15);color:var(--serie)}
-main{max-width:1180px;margin:0 auto;padding:26px 20px 60px}
-@media(max-width:760px){.topo{height:auto;padding:12px 20px;flex-direction:column;align-items:stretch}}
+/* ------------------------------------------------------------ estrutura */
+.app{display:grid;grid-template-columns:236px 1fr;min-height:100dvh}
+aside{background:var(--s1);border-right:1px solid var(--borda);display:flex;flex-direction:column;
+  position:sticky;top:0;height:100dvh}
+.logo{display:flex;align-items:center;gap:11px;padding:20px 20px 22px;font-weight:700;letter-spacing:-.01em}
+.logo i{width:32px;height:32px;border-radius:9px;background:var(--marca);display:grid;place-items:center;
+  font-style:normal;font-weight:800;color:#04202f;font-size:.9rem}
+.logo small{display:block;color:var(--t3);font-weight:500;font-size:.72rem;letter-spacing:0}
+nav.menu{padding:0 12px;display:flex;flex-direction:column;gap:2px;flex:1}
+nav.menu button{display:flex;align-items:center;gap:11px;width:100%;padding:9px 12px;border:0;
+  background:none;color:var(--t2);font-size:.88rem;font-weight:500;border-radius:8px;cursor:pointer;text-align:left}
+nav.menu button:hover{background:rgba(255,255,255,.04);color:var(--t1)}
+nav.menu button[aria-current="true"]{background:var(--marca-suave);color:var(--marca);font-weight:600}
+nav.menu svg{width:17px;height:17px;flex:0 0 17px;stroke:currentColor;fill:none;stroke-width:1.7;
+  stroke-linecap:round;stroke-linejoin:round}
+.rodape-menu{padding:14px 20px;border-top:1px solid var(--borda);display:flex;align-items:center;
+  justify-content:space-between;gap:10px;font-size:.78rem;color:var(--t3)}
+.pulso{display:inline-flex;align-items:center;gap:6px}
+.pulso b{width:7px;height:7px;border-radius:50%;background:var(--bom)}
 
-/* ---------- Componentes ---------- */
-.cartao{background:var(--card);border:1px solid var(--linha);border-radius:14px;padding:20px}
-.cartao+.cartao{margin-top:18px}
-h2{font-size:1.05rem;font-weight:700;margin-bottom:4px}
-.sub{color:var(--txt-2);font-size:.85rem;margin-bottom:18px}
+main{min-width:0;display:flex;flex-direction:column}
+.barra{height:58px;border-bottom:1px solid var(--borda);display:flex;align-items:center;
+  justify-content:space-between;gap:16px;padding:0 26px;background:rgba(11,16,22,.82);
+  backdrop-filter:blur(10px);position:sticky;top:0;z-index:15}
+.barra h1{font-size:1rem;font-weight:650;letter-spacing:-.01em}
+.barra .lado{display:flex;align-items:center;gap:10px}
+.conteudo{padding:24px 26px 60px;max-width:1280px;width:100%}
 
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
-@media(max-width:860px){.tiles{grid-template-columns:repeat(2,1fr)}}
-.tile{background:var(--card);border:1px solid var(--linha);border-radius:14px;padding:18px}
-.tile .rot{font-size:.78rem;color:var(--txt-2);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
-.tile .num{font-size:1.9rem;font-weight:900;letter-spacing:-.02em;margin-top:6px;font-variant-numeric:tabular-nums}
-.tile .pe{font-size:.8rem;color:var(--txt-3);margin-top:2px}
-
-table{width:100%;border-collapse:collapse;font-size:.88rem}
-th{text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--txt-3);font-weight:700;padding:0 10px 10px}
-td{padding:11px 10px;border-top:1px solid var(--linha);vertical-align:middle}
-tbody tr:hover{background:rgba(255,255,255,.03)}
-.rolagem{overflow-x:auto}
-.vazio{text-align:center;color:var(--txt-3);padding:34px 0;font-size:.9rem}
-
-.selo{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
-/* Estado nunca vai só na cor: cada selo carrega ícone e palavra. */
-.selo.pago{background:rgba(22,163,74,.16);color:#4ade80}
-.selo.pendente{background:rgba(217,119,6,.16);color:#fbbf24}
-.selo.recusado,.selo.estornado,.selo.expirado{background:rgba(220,38,38,.16);color:#fca5a5}
-
-input,textarea,select{
-  width:100%;padding:11px 13px;border-radius:9px;background:var(--card-2);border:1px solid var(--linha);
-  color:var(--txt);font-family:inherit;font-size:.95rem;
+@media(max-width:900px){
+  .app{grid-template-columns:1fr}
+  /* visibility junto do transform: só deslocar deixaria o menu fora da tela
+     mas ainda alcançável pelo Tab — foco indo para o que ninguém vê. */
+  aside{position:fixed;inset:0 auto 0 0;width:236px;z-index:40;transform:translateX(-100%);
+    visibility:hidden;transition:transform .2s ease,visibility .2s}
+  aside[data-aberto="true"]{transform:none;visibility:visible;box-shadow:0 0 0 100vmax rgba(0,0,0,.5)}
+  .conteudo{padding:18px 16px 48px}
+  .barra{padding:0 16px}
 }
-input:focus,textarea:focus,select:focus{outline:0;border-color:var(--serie);box-shadow:0 0 0 3px rgba(26,158,224,.2)}
-textarea{min-height:96px;resize:vertical;line-height:1.5}
-label{display:block;font-size:.82rem;font-weight:600;margin-bottom:6px}
-.campo{margin-bottom:16px}
+@media(min-width:901px){ .so-mobile{display:none!important} }
+
+/* ---------------------------------------------------------- componentes */
+.cartao{background:var(--s2);border:1px solid var(--borda);border-radius:var(--raio-g);
+  box-shadow:var(--sombra)}
+.cartao+.cartao{margin-top:16px}
+.cartao-topo{padding:18px 20px 0;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.cartao-corpo{padding:18px 20px 20px}
+h2{font-size:.95rem;font-weight:650;letter-spacing:-.01em}
+.legenda{color:var(--t3);font-size:.8rem;margin-top:3px}
+
+.grade-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+@media(max-width:1000px){.grade-kpi{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.grade-kpi{grid-template-columns:1fr}}
+.kpi{background:var(--s2);border:1px solid var(--borda);border-radius:var(--raio-g);padding:16px 18px;
+  box-shadow:var(--sombra);position:relative;overflow:hidden}
+.kpi .rot{font-size:.75rem;color:var(--t3);font-weight:600;letter-spacing:.02em;text-transform:uppercase}
+.kpi .val{font-size:1.75rem;font-weight:700;letter-spacing:-.025em;margin-top:8px;line-height:1.1}
+.kpi .pe{display:flex;align-items:center;gap:8px;margin-top:7px;font-size:.78rem;color:var(--t3)}
+.delta{display:inline-flex;align-items:center;gap:3px;font-weight:650;padding:1px 6px;border-radius:5px;font-size:.74rem}
+.delta.sobe{background:rgba(22,163,74,.14);color:var(--bom-t)}
+.delta.desce{background:rgba(220,38,38,.14);color:var(--ruim-t)}
+.delta.igual{background:rgba(255,255,255,.06);color:var(--t3)}
+.faisca{position:absolute;right:0;bottom:0;width:90px;height:34px;opacity:.5}
+
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:.85rem}
+thead th{position:sticky;top:58px;background:var(--s2);text-align:left;font-size:.72rem;text-transform:uppercase;
+  letter-spacing:.04em;color:var(--t3);font-weight:650;padding:10px 14px;border-bottom:1px solid var(--borda);z-index:2}
+tbody td{padding:12px 14px;border-bottom:1px solid var(--borda);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:rgba(255,255,255,.025)}
+.tabela{overflow-x:auto}
+.dir{text-align:right}
+
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:.73rem;font-weight:650;padding:3px 9px;
+  border-radius:6px;white-space:nowrap;border:1px solid transparent}
+/* Estado nunca vai só na cor: cada pílula carrega glifo e palavra. */
+.pill.pago{background:rgba(22,163,74,.13);color:var(--bom-t);border-color:rgba(22,163,74,.28)}
+.pill.pendente{background:rgba(217,119,6,.13);color:var(--atencao-t);border-color:rgba(217,119,6,.28)}
+.pill.recusado,.pill.estornado,.pill.expirado{background:rgba(220,38,38,.13);color:var(--ruim-t);border-color:rgba(220,38,38,.28)}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;color:var(--t2);
+  background:var(--s3);border:1px solid var(--borda);padding:2px 8px;border-radius:6px}
+
+label{display:block;font-size:.79rem;font-weight:600;margin-bottom:6px;color:var(--t2)}
+input,textarea,select{width:100%;padding:10px 12px;border-radius:var(--raio);background:var(--s1);
+  border:1px solid var(--borda-forte);color:var(--t1);transition:border-color .12s,box-shadow .12s}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--marca);box-shadow:0 0 0 3px rgba(26,158,224,.16)}
+input::placeholder,textarea::placeholder{color:var(--t3)}
+textarea{min-height:92px;resize:vertical;line-height:1.55}
+.campo{margin-bottom:15px}
+.campo .ajuda{font-size:.75rem;color:var(--t3);margin-top:5px}
 .dupla{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 @media(max-width:640px){.dupla{grid-template-columns:1fr}}
+.marcavel{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--t1);font-weight:500;cursor:pointer}
+.marcavel input{width:auto;margin:0}
 
-.btn{padding:11px 20px;border-radius:9px;border:0;font-weight:700;font-size:.9rem;cursor:pointer;
-  background:var(--serie);color:#04202f;display:inline-flex;align-items:center;gap:8px;justify-content:center}
-.btn:hover:not(:disabled){filter:brightness(1.08)}
-.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn{padding:9px 16px;border-radius:var(--raio);border:1px solid transparent;font-weight:650;font-size:.85rem;
+  cursor:pointer;background:var(--marca);color:#052235;display:inline-flex;align-items:center;
+  justify-content:center;gap:7px;transition:filter .12s,background .12s}
+.btn:hover:not(:disabled){filter:brightness(1.07)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.fantasma{background:var(--s3);color:var(--t1);border-color:var(--borda-forte)}
+.btn.fantasma:hover:not(:disabled){background:#22303f}
+.btn.risco{background:rgba(220,38,38,.14);color:var(--ruim-t);border-color:rgba(220,38,38,.3)}
 .btn.largo{width:100%}
-.btn.secundario{background:rgba(255,255,255,.08);color:var(--txt)}
-.btn.perigo{background:rgba(220,38,38,.18);color:#fca5a5}
+.btn.pequeno{padding:6px 12px;font-size:.79rem}
+.acoes{display:flex;gap:9px;flex-wrap:wrap}
 
-.aviso{border-radius:10px;padding:12px 14px;font-size:.86rem;margin-bottom:12px}
-.aviso.erro{background:rgba(220,38,38,.12);border:1px solid rgba(220,38,38,.35);color:#fca5a5}
-.aviso.ok{background:rgba(22,163,74,.12);border:1px solid rgba(22,163,74,.35);color:#86efac}
-.aviso.atencao{background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.35);color:#fcd34d}
+.grupo{display:inline-flex;background:var(--s1);border:1px solid var(--borda-forte);border-radius:9px;padding:2px}
+.grupo button{background:none;border:0;color:var(--t2);padding:6px 13px;border-radius:7px;font-size:.8rem;
+  font-weight:600;cursor:pointer}
+.grupo button[aria-pressed="true"]{background:var(--s3);color:var(--t1)}
 
-/* ---------- Gráfico ---------- */
-.grafico{position:relative}
-/* Escala uniforme: com preserveAspectRatio="none" o SVG estica na horizontal
-   e deforma os rótulos. A proporção fixa mantém a geometria correta. */
-.grafico svg{width:100%;height:auto;aspect-ratio:900/230;display:block;overflow:visible}
-.grade{stroke:rgba(255,255,255,.07);stroke-width:1}
-.eixo{fill:var(--txt-3);font-size:10px}
-.barra{fill:var(--serie);transition:opacity .12s}
-.barra:hover{opacity:.75}
-.rotulo{fill:var(--txt);font-size:10px;font-weight:700;text-anchor:middle}
-.dica{
-  position:absolute;pointer-events:none;background:#0a141d;border:1px solid var(--linha);border-radius:9px;
-  padding:9px 12px;font-size:.8rem;white-space:nowrap;box-shadow:0 10px 30px -10px #000;opacity:0;transition:opacity .12s;z-index:5;
-}
-.dica b{display:block;font-size:.95rem;margin-bottom:2px}
-.dica span{color:var(--txt-2)}
-.faixa-tabela{margin-top:14px;font-size:.82rem;color:var(--txt-2)}
-.faixa-tabela summary{cursor:pointer;color:var(--serie);font-weight:600}
-.faixa-tabela table{margin-top:12px}
+.faixa{border-radius:var(--raio);padding:11px 14px;font-size:.83rem;display:flex;gap:9px;align-items:flex-start;margin-bottom:10px}
+.faixa.atencao{background:rgba(217,119,6,.1);border:1px solid rgba(217,119,6,.3);color:var(--atencao-t)}
+.faixa.erro{background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);color:var(--ruim-t)}
+.faixa.ok{background:rgba(22,163,74,.1);border:1px solid rgba(22,163,74,.3);color:var(--bom-t)}
 
-.linha-topo{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
-.periodo{display:flex;gap:6px}
-.periodo button{background:var(--card-2);border:1px solid var(--linha);color:var(--txt-2);padding:7px 13px;
-  border-radius:8px;font-size:.83rem;font-weight:600;cursor:pointer}
-.periodo button[aria-pressed="true"]{border-color:var(--serie);color:var(--serie);background:rgba(26,158,224,.12)}
-.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;color:var(--txt-2)}
-.carregando{color:var(--txt-3);font-size:.9rem;padding:20px 0;text-align:center}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+/* avisos temporários fora do fluxo, para não empurrar a página */
+.avisos{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;flex-direction:column;gap:9px;max-width:340px}
+.toast{background:var(--s3);border:1px solid var(--borda-forte);border-radius:var(--raio);padding:12px 15px;
+  font-size:.84rem;box-shadow:var(--sombra);animation:entra .18s ease}
+.toast.ok{border-left:3px solid var(--bom)} .toast.erro{border-left:3px solid var(--ruim)}
+@keyframes entra{from{opacity:0;transform:translateY(6px)}}
+
+.vazio{text-align:center;padding:44px 20px;color:var(--t3)}
+.vazio svg{width:34px;height:34px;stroke:var(--t3);fill:none;stroke-width:1.5;margin-bottom:12px;opacity:.7}
+.vazio b{display:block;color:var(--t2);font-size:.9rem;margin-bottom:4px}
+.vazio span{font-size:.82rem;line-height:1.6}
+
+/* esqueleto de carregamento: dá forma antes do dado chegar */
+.esq{background:linear-gradient(90deg,var(--s3) 25%,#20293a 50%,var(--s3) 75%);background-size:200% 100%;
+  animation:brilho 1.3s infinite;border-radius:6px;height:12px}
+@keyframes brilho{to{background-position:-200% 0}}
+
+/* ------------------------------------------------------------- gráfico */
+.plot{position:relative}
+.plot svg{width:100%;height:auto;aspect-ratio:920/260;display:block;overflow:visible}
+.grade-linha{stroke:rgba(255,255,255,.06)}
+.eixo{fill:var(--t3);font-size:10.5px}
+/* Nome próprio, distinto de .barra (a barra superior do layout): em SVG2 a
+   propriedade CSS height vence o atributo do elemento, e a colisão de nomes
+   achatava todas as colunas do gráfico na altura do cabeçalho. */
+.col{fill:var(--marca)}
+.col.vazia{fill:rgba(26,158,224,.28)}
+.rotulo-max{fill:var(--t1);font-size:10.5px;font-weight:700;text-anchor:middle}
+.mira{stroke:rgba(255,255,255,.16);stroke-dasharray:3 3}
+.balao{position:absolute;pointer-events:none;background:var(--s3);border:1px solid var(--borda-forte);
+  border-radius:9px;padding:9px 12px;font-size:.8rem;white-space:nowrap;box-shadow:var(--sombra);
+  opacity:0;transition:opacity .1s;z-index:5}
+.balao b{display:block;font-size:.98rem;font-weight:700;margin-bottom:3px}
+.balao span{color:var(--t2);font-size:.76rem}
+details.tabela-dados summary{cursor:pointer;color:var(--t2);font-size:.8rem;font-weight:600;padding:12px 0 0}
+details.tabela-dados summary:hover{color:var(--t1)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -127,161 +214,206 @@ label{display:block;font-size:.82rem;font-weight:600;margin-bottom:6px}
 <!-- ==================== LOGIN ==================== -->
 <div class="login" id="tela-login">
   <div class="login-caixa">
-    <h1>Painel</h1>
-    <p>Acesso restrito ao administrador da loja.</p>
-    <div class="aviso erro" id="erro-login" hidden></div>
+    <div class="login-marca">
+      <i>B</i>
+      <div><h1>Painel de vendas</h1><div class="dica">Acesso restrito ao administrador</div></div>
+    </div>
+    <div class="faixa erro" id="erro-login" hidden></div>
     <form id="form-login">
       <div class="campo">
         <label for="senha">Senha</label>
-        <input type="password" id="senha" autocomplete="current-password" required>
+        <input type="password" id="senha" autocomplete="current-password" required autofocus>
       </div>
-      <button class="btn largo" type="submit">Entrar</button>
+      <button class="btn largo" type="submit" id="btn-entrar">Entrar</button>
     </form>
   </div>
 </div>
 
-<!-- ==================== PAINEL ==================== -->
-<div id="tela-painel" hidden>
-  <header>
-    <div class="topo">
-      <div class="marca"><span>B</span> Painel</div>
-      <nav class="abas" id="abas">
-        <button data-aba="visao" aria-current="true">Visão geral</button>
-        <button data-aba="pedidos">Pedidos</button>
-        <button data-aba="contatos">Contatos</button>
-        <button data-aba="bot">Bot</button>
-        <button data-aba="config">Configuração</button>
-      </nav>
-      <button class="btn secundario" id="btn-sair">Sair</button>
+<!-- ==================== APLICAÇÃO ==================== -->
+<div class="app" id="tela-painel" hidden>
+  <aside id="lateral">
+    <div class="logo">
+      <i>B</i>
+      <div>Bot 24h<small>Painel de vendas</small></div>
     </div>
-  </header>
+    <nav class="menu" id="menu">
+      <button data-aba="visao" aria-current="true">
+        <svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 3h4v18h-4zM17 9h4v12h-4z"/></svg> Visão geral</button>
+      <button data-aba="pedidos">
+        <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5M9 13h6M9 17h6"/></svg> Pedidos</button>
+      <button data-aba="contatos">
+        <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/></svg> Contatos</button>
+      <button data-aba="bot">
+        <svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="3"/><path d="M12 8V4M8 14h.01M16 14h.01"/></svg> Bot</button>
+      <button data-aba="config">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9v0c.2.6.76 1 1.4 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> Configuração</button>
+    </nav>
+    <div class="rodape-menu">
+      <span class="pulso" id="saude"><b></b> ao vivo</span>
+      <button class="btn fantasma pequeno" id="btn-sair">Sair</button>
+    </div>
+  </aside>
 
   <main>
-    <div id="alertas"></div>
+    <div class="barra">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn fantasma pequeno so-mobile" id="btn-menu" aria-label="Abrir menu">☰</button>
+        <h1 id="titulo-pagina">Visão geral</h1>
+      </div>
+      <div class="lado">
+        <span class="tag" id="tag-atualizado">—</span>
+        <button class="btn fantasma pequeno" id="btn-atualizar">Atualizar</button>
+      </div>
+    </div>
 
-    <!-- ---------- Visão geral ---------- -->
-    <section data-painel="visao">
-      <div class="tiles" id="tiles"></div>
+    <div class="conteudo">
+      <div id="alertas"></div>
 
-      <div class="cartao grafico">
-        <div class="linha-topo">
-          <div>
-            <h2>Receita por dia</h2>
-            <div class="sub" style="margin:0">Valores confirmados, em reais</div>
+      <!-- ---------- Visão geral ---------- -->
+      <section data-painel="visao">
+        <div class="grade-kpi" id="kpis"></div>
+
+        <div class="cartao plot">
+          <div class="cartao-topo">
+            <div>
+              <h2>Receita por dia</h2>
+              <div class="legenda">Somente pagamentos confirmados</div>
+            </div>
+            <div class="grupo" id="periodo">
+              <button data-dias="7">7 dias</button>
+              <button data-dias="14" aria-pressed="true">14 dias</button>
+              <button data-dias="30">30 dias</button>
+            </div>
           </div>
-          <div class="periodo" id="periodo">
-            <button data-dias="7">7 dias</button>
-            <button data-dias="14" aria-pressed="true">14 dias</button>
-            <button data-dias="30">30 dias</button>
+          <div class="cartao-corpo">
+            <div id="grafico"></div>
+            <div class="balao" id="balao"></div>
+            <details class="tabela-dados">
+              <summary>Ver os números em tabela</summary>
+              <div class="tabela" id="tabela-serie"></div>
+            </details>
           </div>
         </div>
-        <div id="grafico"><div class="carregando">Carregando…</div></div>
-        <div class="dica" id="dica"></div>
-        <details class="faixa-tabela">
-          <summary>Ver os números em tabela</summary>
-          <div class="rolagem" id="tabela-serie"></div>
-        </details>
-      </div>
-    </section>
+      </section>
 
-    <!-- ---------- Pedidos ---------- -->
-    <section data-painel="pedidos" hidden>
-      <div class="cartao">
-        <h2>Pedidos recentes</h2>
-        <div class="sub">Os 40 mais recentes, do mais novo para o mais antigo.</div>
-        <div class="rolagem" id="tabela-pedidos"></div>
-      </div>
-    </section>
-
-    <!-- ---------- Contatos ---------- -->
-    <section data-painel="contatos" hidden>
-      <div class="cartao">
-        <h2>Disparo em massa</h2>
-        <div class="sub">Envia a mensagem para quem já falou com o bot. Aceita *negrito* e _itálico_.</div>
-        <div id="aviso-disparo"></div>
-        <div class="campo">
-          <textarea id="msg-disparo" placeholder="Ex: Abrimos 10 vagas com 20% de desconto até domingo. Responda AQUI que eu te mando o link."></textarea>
+      <!-- ---------- Pedidos ---------- -->
+      <section data-painel="pedidos" hidden>
+        <div class="cartao">
+          <div class="cartao-topo"><div>
+            <h2>Pedidos recentes</h2>
+            <div class="legenda">Os 40 mais recentes, do mais novo para o mais antigo</div>
+          </div></div>
+          <div class="tabela" id="tabela-pedidos"></div>
         </div>
-        <div class="campo">
-          <label><input type="checkbox" id="so-compradores" style="width:auto;margin-right:8px">Enviar só para quem já comprou</label>
+      </section>
+
+      <!-- ---------- Contatos ---------- -->
+      <section data-painel="contatos" hidden>
+        <div class="cartao">
+          <div class="cartao-topo"><div>
+            <h2>Disparo em massa</h2>
+            <div class="legenda">Vai para quem já falou com o bot. Aceita *negrito* e _itálico_.</div>
+          </div></div>
+          <div class="cartao-corpo">
+            <div class="campo">
+              <textarea id="msg-disparo" placeholder="Ex: Abrimos 10 vagas com 20% de desconto até domingo. Responda AQUI que eu te mando o link."></textarea>
+              <div class="ajuda"><span id="contador-disparo">0</span>/3500 caracteres</div>
+            </div>
+            <div class="campo">
+              <label class="marcavel"><input type="checkbox" id="so-compradores"> Enviar só para quem já comprou</label>
+            </div>
+            <button class="btn" id="btn-disparo">Enviar disparo</button>
+          </div>
         </div>
-        <button class="btn" id="btn-disparo">Enviar disparo</button>
-      </div>
 
-      <div class="cartao">
-        <h2>Contatos do bot</h2>
-        <div class="sub">Todo mundo que iniciou uma conversa.</div>
-        <div class="rolagem" id="tabela-leads"></div>
-      </div>
-    </section>
-
-    <!-- ---------- Bot ---------- -->
-    <section data-painel="bot" hidden>
-      <div class="cartao">
-        <h2>Conexão do bot</h2>
-        <div class="sub">O bot funciona por webhook: o Telegram avisa o site a cada mensagem.</div>
-        <div id="aviso-bot"></div>
-        <div id="status-bot" class="carregando">Consultando o Telegram…</div>
-        <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
-          <button class="btn" id="btn-conectar">Conectar / reconectar</button>
-          <button class="btn secundario" id="btn-status-bot">Atualizar status</button>
-          <button class="btn perigo" id="btn-desconectar">Desconectar</button>
+        <div class="cartao">
+          <div class="cartao-topo"><div>
+            <h2>Contatos do bot</h2>
+            <div class="legenda">Todo mundo que iniciou uma conversa</div>
+          </div></div>
+          <div class="tabela" id="tabela-leads"></div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ---------- Configuração ---------- -->
-    <section data-painel="config" hidden>
-      <div id="aviso-config"></div>
-
-      <div class="cartao">
-        <h2>Loja</h2>
-        <div class="sub">Aparece nas mensagens do bot e no suporte.</div>
-        <div class="dupla">
-          <div class="campo"><label for="cfg-nome">Nome da loja</label><input id="cfg-nome"></div>
-          <div class="campo"><label for="cfg-suporte">Suporte no Telegram (sem @)</label><input id="cfg-suporte"></div>
+      <!-- ---------- Bot ---------- -->
+      <section data-painel="bot" hidden>
+        <div class="cartao">
+          <div class="cartao-topo"><div>
+            <h2>Conexão</h2>
+            <div class="legenda">O bot funciona por webhook: o Telegram avisa o site a cada mensagem</div>
+          </div></div>
+          <div class="cartao-corpo">
+            <div id="status-bot"></div>
+            <div class="acoes" style="margin-top:18px">
+              <button class="btn" id="btn-conectar">Conectar / reconectar</button>
+              <button class="btn fantasma" id="btn-status-bot">Atualizar status</button>
+              <button class="btn risco" id="btn-desconectar">Desconectar</button>
+            </div>
+          </div>
         </div>
-        <div class="campo"><label for="cfg-email">E-mail de suporte</label><input id="cfg-email"></div>
-      </div>
+      </section>
 
-      <div class="cartao">
-        <h2>Produtos</h2>
-        <div class="sub">Preço vale para o site e para o bot. Use vírgula para os centavos.</div>
-        <div class="rolagem" id="tabela-produtos"></div>
-        <button class="btn secundario" id="btn-novo-produto" style="margin-top:14px">+ Novo produto</button>
-      </div>
+      <!-- ---------- Configuração ---------- -->
+      <section data-painel="config" hidden>
+        <div class="cartao">
+          <div class="cartao-topo"><div>
+            <h2>Loja</h2><div class="legenda">Aparece nas mensagens do bot e no suporte</div>
+          </div></div>
+          <div class="cartao-corpo">
+            <div class="dupla">
+              <div class="campo"><label for="cfg-nome">Nome da loja</label><input id="cfg-nome"></div>
+              <div class="campo"><label for="cfg-suporte">Suporte no Telegram</label><input id="cfg-suporte" placeholder="sem o @"></div>
+            </div>
+            <div class="campo" style="margin:0"><label for="cfg-email">E-mail de suporte</label><input id="cfg-email"></div>
+          </div>
+        </div>
 
-      <div class="cartao">
-        <h2>Mensagens do bot</h2>
-        <div class="sub">
-          Marcadores disponíveis: <span class="mono">{nome}</span> <span class="mono">{loja}</span>
-          <span class="mono">{produto}</span> <span class="mono">{email}</span> <span class="mono">{valor}</span>
+        <div class="cartao">
+          <div class="cartao-topo">
+            <div><h2>Produtos</h2><div class="legenda">O preço vale para o site e para o bot</div></div>
+            <button class="btn fantasma pequeno" id="btn-novo-produto">+ Novo produto</button>
+          </div>
+          <div class="tabela" id="tabela-produtos"></div>
         </div>
-        <div class="campo"><label><input type="checkbox" id="cfg-bot-ativo" style="width:auto;margin-right:8px">Bot ativo (desmarque para pausar o atendimento)</label></div>
-        <div class="campo"><label for="cfg-boas">Boas-vindas</label><textarea id="cfg-boas"></textarea></div>
-        <div class="campo"><label for="cfg-catalogo">Texto do catálogo</label><textarea id="cfg-catalogo"></textarea></div>
-        <div class="campo"><label for="cfg-duvidas">Dúvidas frequentes</label><textarea id="cfg-duvidas"></textarea></div>
-        <div class="dupla">
-          <div class="campo"><label for="cfg-email-msg">Pedindo o e-mail</label><textarea id="cfg-email-msg"></textarea></div>
-          <div class="campo"><label for="cfg-cpf">Pedindo o CPF</label><textarea id="cfg-cpf"></textarea></div>
-        </div>
-        <div class="dupla">
-          <div class="campo"><label for="cfg-pix">Pix gerado</label><textarea id="cfg-pix"></textarea></div>
-          <div class="campo"><label for="cfg-pos">Pagamento confirmado</label><textarea id="cfg-pos"></textarea></div>
-        </div>
-      </div>
 
-      <button class="btn largo" id="btn-salvar-config">Salvar configuração</button>
-    </section>
+        <div class="cartao">
+          <div class="cartao-topo"><div>
+            <h2>Mensagens do bot</h2>
+            <div class="legenda">Marcadores: <span class="mono">{nome}</span> <span class="mono">{loja}</span>
+              <span class="mono">{produto}</span> <span class="mono">{email}</span> <span class="mono">{valor}</span></div>
+          </div></div>
+          <div class="cartao-corpo">
+            <div class="campo"><label class="marcavel"><input type="checkbox" id="cfg-bot-ativo"> Bot ativo — desmarque para pausar o atendimento</label></div>
+            <div class="campo"><label for="cfg-boas">Boas-vindas</label><textarea id="cfg-boas"></textarea></div>
+            <div class="campo"><label for="cfg-catalogo">Texto do catálogo</label><textarea id="cfg-catalogo"></textarea></div>
+            <div class="campo"><label for="cfg-duvidas">Dúvidas frequentes</label><textarea id="cfg-duvidas"></textarea></div>
+            <div class="dupla">
+              <div class="campo"><label for="cfg-email-msg">Pedindo o e-mail</label><textarea id="cfg-email-msg"></textarea></div>
+              <div class="campo"><label for="cfg-cpf">Pedindo o CPF</label><textarea id="cfg-cpf"></textarea></div>
+            </div>
+            <div class="dupla">
+              <div class="campo"><label for="cfg-pix">Pix gerado</label><textarea id="cfg-pix"></textarea></div>
+              <div class="campo" style="margin:0"><label for="cfg-pos">Pagamento confirmado</label><textarea id="cfg-pos"></textarea></div>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn largo" id="btn-salvar-config" style="margin-top:16px">Salvar configuração</button>
+      </section>
+    </div>
   </main>
 </div>
+
+<div class="avisos" id="avisos"></div>
 
 <script type="module">
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-let dados = null, configAtual = null, produtosEdit = {}, dias = 14;
+let dados = null, produtosEdit = {}, dias = 14, atualizadoEm = null;
 
-/* --------------------------------------------------------------- rede */
+const TITULOS = { visao:'Visão geral', pedidos:'Pedidos', contatos:'Contatos', bot:'Bot', config:'Configuração' };
+
+/* ------------------------------------------------------------------ rede */
 async function api(caminho, opcoes = {}) {
   const r = await fetch(caminho, { credentials: 'same-origin', ...opcoes });
   if (r.status === 401) { mostrarLogin(); throw new Error('Sessão expirada'); }
@@ -290,32 +422,34 @@ async function api(caminho, opcoes = {}) {
   return d;
 }
 
-function avisar(onde, texto, tipo = 'ok') {
-  const alvo = $(onde);
-  alvo.innerHTML = `<div class="aviso ${tipo}">${escapar(texto)}</div>`;
-  if (tipo === 'ok') setTimeout(() => { alvo.innerHTML = ''; }, 5000);
+/* Avisos flutuantes: informam sem empurrar o conteúdo da página. */
+function toast(texto, tipo = 'ok') {
+  const el = document.createElement('div');
+  el.className = 'toast ' + tipo;
+  el.textContent = texto;
+  $('#avisos').append(el);
+  setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 250); }, 4200);
 }
-const escapar = t => String(t ?? '').replace(/[<>&"]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;' }[c]));
-const brl = v => 'R$ ' + v;
-const dataCurta = iso => {
-  const d = new Date(iso);
-  return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit' }) + ' ' +
-         d.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
-};
 
-/* --------------------------------------------------------------- login */
-function mostrarLogin() { $('#tela-login').hidden = false; $('#tela-painel').hidden = true; }
-function mostrarPainel() { $('#tela-login').hidden = true; $('#tela-painel').hidden = false; carregar(); }
+const esc = t => String(t ?? '').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const dataHora = iso => new Date(iso).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+const reais = c => (c/100).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+
+/* ----------------------------------------------------------------- login */
+function mostrarLogin(){ $('#tela-login').hidden = false; $('#tela-painel').hidden = true; }
+function mostrarPainel(){ $('#tela-login').hidden = true; $('#tela-painel').hidden = false; carregar(); }
 
 $('#form-login').addEventListener('submit', async (e) => {
   e.preventDefault();
   $('#erro-login').hidden = true;
-  /* Sem passar por api(): ali um 401 significa "sessão expirada", enquanto
-     aqui significa "senha errada" — e o cliente precisa ler a mensagem certa. */
+  const botao = $('#btn-entrar');
+  botao.disabled = true; botao.textContent = 'Entrando…';
+  /* Sem passar por api(): ali um 401 é "sessão expirada", aqui é "senha
+     errada" — e quem está entrando precisa ler a mensagem certa. */
   try {
     const r = await fetch('/api/painel-login', {
-      method: 'POST', credentials: 'same-origin',
-      headers: { 'Content-Type': 'application/json' },
+      method:'POST', credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ senha: $('#senha').value })
     });
     const d = await r.json().catch(() => ({}));
@@ -325,109 +459,173 @@ $('#form-login').addEventListener('submit', async (e) => {
   } catch (err) {
     $('#erro-login').textContent = err.message;
     $('#erro-login').hidden = false;
-  }
+  } finally { botao.disabled = false; botao.textContent = 'Entrar'; }
 });
 
 $('#btn-sair').addEventListener('click', async () => {
-  await fetch('/api/painel-login', { method: 'DELETE', credentials: 'same-origin' });
+  await fetch('/api/painel-login', { method:'DELETE', credentials:'same-origin' });
   mostrarLogin();
 });
 
-/* ---------------------------------------------------------------- abas */
-$('#abas').addEventListener('click', (e) => {
-  const botao = e.target.closest('[data-aba]');
-  if (!botao) return;
-  $$('#abas button').forEach(b => b.setAttribute('aria-current', String(b === botao)));
-  $$('[data-painel]').forEach(s => s.hidden = s.dataset.painel !== botao.dataset.aba);
-  if (botao.dataset.aba === 'config') carregarConfig();
-  if (botao.dataset.aba === 'bot') statusBot();
+/* ------------------------------------------------------------ navegação */
+$('#menu').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-aba]'); if (!b) return;
+  $$('#menu button').forEach(x => x.setAttribute('aria-current', String(x === b)));
+  $$('[data-painel]').forEach(s => s.hidden = s.dataset.painel !== b.dataset.aba);
+  $('#titulo-pagina').textContent = TITULOS[b.dataset.aba];
+  $('#lateral').dataset.aberto = 'false';
+  if (b.dataset.aba === 'config') carregarConfig();
+  if (b.dataset.aba === 'bot') statusBot();
 });
+$('#btn-menu').addEventListener('click', () => {
+  const l = $('#lateral');
+  l.dataset.aberto = l.dataset.aberto === 'true' ? 'false' : 'true';
+});
+$('#btn-atualizar').addEventListener('click', () => carregar());
 
-/* ------------------------------------------------------------ carregar */
+/* ------------------------------------------------------------- carregar */
+function esqueleto() {
+  $('#kpis').innerHTML = Array(4).fill(`<div class="kpi">
+    <div class="esq" style="width:60%"></div>
+    <div class="esq" style="width:45%;height:26px;margin-top:12px"></div>
+    <div class="esq" style="width:35%;margin-top:10px"></div></div>`).join('');
+  $('#grafico').innerHTML = `<div class="esq" style="height:230px"></div>`;
+}
+
 async function carregar() {
+  if (!dados) esqueleto();
   try {
-    dados = await api(`/api/painel-dados?dias=${dias}`);
+    /* Pede o dobro do período: a metade anterior serve de base para a
+       variação — um número sozinho não diz se está bom ou ruim. */
+    dados = await api(`/api/painel-dados?dias=${Math.min(90, dias * 2)}`);
   } catch { return; }
 
-  $('#alertas').innerHTML = dados.sistema.alertas
-    .map(a => `<div class="aviso atencao">⚠️ ${escapar(a)}</div>`).join('');
+  atualizadoEm = new Date();
+  $('#tag-atualizado').textContent = 'atualizado ' + atualizadoEm.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
 
-  const r = dados.resumo;
-  $('#tiles').innerHTML = `
-    ${tile('Receita hoje', brl(r.hoje.receita), `${r.hoje.vendas} venda(s)`)}
-    ${tile('Últimos 7 dias', brl(r.sete.receita), `${r.sete.vendas} venda(s)`)}
-    ${tile('Últimos 30 dias', brl(r.trinta.receita), `${r.trinta.vendas} venda(s)`)}
-    ${tile('Contatos no bot', String(r.totalLeads), `${r.conversao}% dos pedidos pagos`)}
-  `;
-  desenharGrafico(dados.serie);
-  tabelaSerie(dados.serie);
+  $('#alertas').innerHTML = dados.sistema.alertas
+    .map(a => `<div class="faixa atencao"><span>⚠</span><span>${esc(a)}</span></div>`).join('');
+
+  const serie = dados.serie.slice(-dias);
+  const anterior = dados.serie.slice(-dias * 2, -dias);
+  desenharKpis(serie, anterior);
+  desenharGrafico(serie);
+  tabelaSerie(serie);
   tabelaPedidos(dados.pedidos);
   tabelaLeads(dados.leads);
 }
-const tile = (rot, num, pe) =>
-  `<div class="tile"><div class="rot">${rot}</div><div class="num">${escapar(num)}</div><div class="pe">${escapar(pe)}</div></div>`;
 
-/* ------------------------------------------------------------- gráfico
-   Uma série só (receita): sem legenda — o título já diz o que é. Rótulo
-   direto apenas no maior valor, para dar escala sem poluir. */
+/* --------------------------------------------------------------- KPIs */
+function variacao(atual, base) {
+  if (!base) return atual > 0 ? { classe:'sobe', texto:'novo' } : { classe:'igual', texto:'—' };
+  const pct = Math.round(((atual - base) / base) * 100);
+  if (pct === 0) return { classe:'igual', texto:'0%' };
+  return { classe: pct > 0 ? 'sobe' : 'desce', texto: (pct > 0 ? '↑ ' : '↓ ') + Math.abs(pct) + '%' };
+}
+
+function desenharKpis(serie, anterior) {
+  const soma = (s, c) => s.reduce((t, d) => t + d[c], 0);
+  const r = dados.resumo;
+  const receita = soma(serie, 'receitaCentavos'), receitaAnt = soma(anterior, 'receitaCentavos');
+  const vendas = soma(serie, 'vendas'), vendasAnt = soma(anterior, 'vendas');
+  const pedidos = soma(serie, 'pedidos'), pedidosAnt = soma(anterior, 'pedidos');
+  const ticket = vendas ? Math.round(receita / vendas) : 0;
+
+  const cartoes = [
+    { rot:`Receita · ${dias}d`, val:'R$ ' + reais(receita), pe:`${vendas} venda(s)`, d:variacao(receita, receitaAnt), faisca:serie.map(x => x.receitaCentavos) },
+    { rot:'Hoje', val:'R$ ' + r.hoje.receita, pe:`${r.hoje.vendas} venda(s) · ${r.hoje.pedidos} pedido(s)`, d:null, faisca:null },
+    { rot:'Ticket médio', val: ticket ? 'R$ ' + reais(ticket) : '—', pe:`${pedidos} pedido(s) no período`, d:variacao(pedidos, pedidosAnt), faisca:null },
+    /* Sem delta aqui: a variação seria de vendas, e o número é de contatos —
+       rótulo e dado precisam falar da mesma coisa. */
+    { rot:'Contatos no bot', val:String(r.totalLeads), pe:`${r.conversao}% dos pedidos pagos`, d:null, faisca:serie.map(x => x.vendas) }
+  ];
+
+  $('#kpis').innerHTML = cartoes.map(c => `<div class="kpi">
+    <div class="rot">${esc(c.rot)}</div>
+    <div class="val num">${esc(c.val)}</div>
+    <div class="pe">${c.d ? `<span class="delta ${c.d.classe}">${c.d.texto}</span>` : ''}<span>${esc(c.pe)}</span></div>
+    ${c.faisca ? faisca(c.faisca) : ''}
+  </div>`).join('');
+}
+
+/* Faísca: tendência sem eixos nem números — contexto, não leitura precisa.
+   Com menos de dois pontos preenchidos não há tendência para mostrar: um pico
+   solitário vira um risco diagonal que não informa nada. */
+function faisca(valores) {
+  if (valores.filter(v => v > 0).length < 2) return '';
+  const max = Math.max(1, ...valores);
+  const p = valores.map((v, i) => `${(i / (valores.length - 1 || 1)) * 90},${34 - (v / max) * 28}`).join(' ');
+  return `<svg class="faisca" viewBox="0 0 90 34" aria-hidden="true">
+    <polyline points="${p}" fill="none" stroke="var(--marca)" stroke-width="1.6"
+      stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+/* ------------------------------------------------------------- gráfico */
 function desenharGrafico(serie) {
-  const L = 44, D = 8, T = 16, B = 26;      // margens
-  const largura = 900, altura = 230;
-  const areaL = largura - L - D, areaA = altura - T - B;
+  const L = 52, D = 10, T = 18, B = 28, W = 920, H = 260;
+  const areaL = W - L - D, areaA = H - T - B;
   const maximo = Math.max(1, ...serie.map(d => d.receitaCentavos));
   const passo = areaL / serie.length;
-  const largBarra = Math.max(3, Math.min(38, passo - 6));   // 6px = respiro entre barras
+  const larg = Math.max(4, Math.min(34, passo - 8));   // 8px de respiro entre barras
+  const hoje = serie.at(-1)?.dia;
 
-  const linhas = [0, .5, 1].map(f => {
+  const grade = [0, .25, .5, .75, 1].map(f => {
     const y = T + areaA - areaA * f;
-    return `<line class="grade" x1="${L}" y1="${y}" x2="${largura - D}" y2="${y}"/>
-            <text class="eixo" x="${L - 8}" y="${y + 3}" text-anchor="end">${(maximo * f / 100).toFixed(0)}</text>`;
+    const v = maximo * f / 100;
+    return `<line class="grade-linha" x1="${L}" y1="${y}" x2="${W - D}" y2="${y}"/>
+      <text class="eixo" x="${L - 10}" y="${y + 3.5}" text-anchor="end">${v >= 1000 ? (v/1000).toFixed(1) + 'k' : v.toFixed(0)}</text>`;
   }).join('');
 
-  const indiceMax = serie.findIndex(d => d.receitaCentavos === maximo && maximo > 0);
-
+  const iMax = serie.findIndex(d => d.receitaCentavos === maximo && maximo > 0);
   const barras = serie.map((d, i) => {
     const h = maximo ? (d.receitaCentavos / maximo) * areaA : 0;
-    const x = L + i * passo + (passo - largBarra) / 2;
+    const x = L + i * passo + (passo - larg) / 2;
     const y = T + areaA - h;
-    const rotulo = i === indiceMax && maximo > 0
-      ? `<text class="rotulo" x="${x + largBarra / 2}" y="${y - 6}">${(maximo/100).toFixed(0)}</text>` : '';
-    /* rx cria a ponta arredondada; a barra continua ancorada na linha de base */
-    return `${rotulo}<rect class="barra" x="${x}" y="${y}" width="${largBarra}" height="${Math.max(h, d.receitaCentavos > 0 ? 3 : 0)}"
-             rx="4" data-i="${i}"><title>${d.dia}: R$ ${(d.receitaCentavos/100).toFixed(2)}</title></rect>`;
+    const rot = i === iMax && maximo > 0
+      ? `<text class="rotulo-max" x="${x + larg/2}" y="${y - 7}">${reais(maximo)}</text>` : '';
+    /* Dia sem receita ganha um traço fraco: a ausência também é informação. */
+    const classe = d.receitaCentavos > 0 ? 'col' : 'col vazia';
+    const altura = d.receitaCentavos > 0 ? Math.max(h, 3) : 3;
+    return `${rot}<rect class="${classe}" x="${x}" y="${T + areaA - altura}" width="${larg}"
+      height="${altura}" rx="4" data-i="${i}"><title>${d.dia}: R$ ${reais(d.receitaCentavos)}</title></rect>`;
   }).join('');
 
-  const passoRotulo = Math.ceil(serie.length / 7);
-  const datas = serie.map((d, i) => i % passoRotulo === 0
-    ? `<text class="eixo" x="${L + i * passo + passo/2}" y="${altura - 8}" text-anchor="middle">${d.dia.slice(8)}/${d.dia.slice(5,7)}</text>` : '').join('');
+  const salto = Math.ceil(serie.length / 8);
+  const datas = serie.map((d, i) => (i % salto === 0 || d.dia === hoje)
+    ? `<text class="eixo" x="${L + i*passo + passo/2}" y="${H - 9}" text-anchor="middle">${d.dia.slice(8)}/${d.dia.slice(5,7)}</text>` : '').join('');
 
-  $('#grafico').innerHTML =
-    `<svg viewBox="0 0 ${largura} ${altura}" role="img"
-       aria-label="Receita diária dos últimos ${serie.length} dias">${linhas}${barras}${datas}</svg>`;
+  $('#grafico').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img"
+    aria-label="Receita diária dos últimos ${serie.length} dias">
+    ${grade}<line class="mira" id="mira" x1="0" y1="${T}" x2="0" y2="${T+areaA}" style="opacity:0"/>${barras}${datas}</svg>`;
 
-  /* Camada de hover: alvo maior que a barra, para funcionar no toque. */
-  const svg = $('#grafico svg'), dica = $('#dica');
-  svg.addEventListener('mousemove', (ev) => {
+  const svg = $('#grafico svg'), balao = $('#balao'), mira = $('#mira');
+  const mover = (clientX, clientY) => {
     const caixa = svg.getBoundingClientRect();
-    const rel = (ev.clientX - caixa.left) / caixa.width * largura;
+    const rel = (clientX - caixa.left) / caixa.width * W;
     const i = Math.floor((rel - L) / passo);
     const d = serie[i];
-    if (!d) { dica.style.opacity = 0; return; }
-    dica.innerHTML = `<b>R$ ${(d.receitaCentavos/100).toFixed(2)}</b>
-      <span>${d.dia.split('-').reverse().join('/')} · ${d.vendas} venda(s) · ${d.pedidos} pedido(s)</span>`;
-    dica.style.opacity = 1;
-    dica.style.left = Math.min(caixa.width - 170, Math.max(0, ev.clientX - caixa.left - 60)) + 'px';
-    dica.style.top = (ev.clientY - caixa.top - 60) + 'px';
-  });
-  svg.addEventListener('mouseleave', () => { dica.style.opacity = 0; });
+    if (!d) { balao.style.opacity = 0; mira.style.opacity = 0; return; }
+    const cx = L + i * passo + passo / 2;
+    mira.setAttribute('x1', cx); mira.setAttribute('x2', cx); mira.style.opacity = 1;
+    balao.innerHTML = `<b>R$ ${reais(d.receitaCentavos)}</b>
+      <span>${d.dia.split('-').reverse().join('/')} · ${d.vendas} venda(s) · ${d.pedidos} pedido(s)${d.vendasBot ? ' · ' + d.vendasBot + ' pelo bot' : ''}</span>`;
+    balao.style.opacity = 1;
+    balao.style.left = Math.max(0, Math.min(caixa.width - 210, (cx / W) * caixa.width - 90)) + 'px';
+    balao.style.top = (clientY - caixa.top - 62) + 'px';
+  };
+  svg.addEventListener('mousemove', e => mover(e.clientX, e.clientY));
+  svg.addEventListener('touchmove', e => { const t = e.touches[0]; mover(t.clientX, t.clientY); }, { passive:true });
+  svg.addEventListener('mouseleave', () => { balao.style.opacity = 0; mira.style.opacity = 0; });
 }
 
 function tabelaSerie(serie) {
-  $('#tabela-serie').innerHTML = `<table><thead><tr><th>Dia</th><th>Pedidos</th><th>Vendas</th><th>Pelo bot</th><th>Receita</th></tr></thead><tbody>` +
-    serie.slice().reverse().map(d => `<tr>
-      <td>${d.dia.split('-').reverse().join('/')}</td><td>${d.pedidos}</td><td>${d.vendas}</td>
-      <td>${d.vendasBot}</td><td>R$ ${(d.receitaCentavos/100).toFixed(2)}</td></tr>`).join('') +
-    `</tbody></table>`;
+  $('#tabela-serie').innerHTML = `<table><thead><tr>
+    <th>Dia</th><th class="dir">Pedidos</th><th class="dir">Vendas</th><th class="dir">Pelo bot</th><th class="dir">Receita</th>
+    </tr></thead><tbody>` + serie.slice().reverse().map(d => `<tr>
+      <td>${d.dia.split('-').reverse().join('/')}</td>
+      <td class="dir num">${d.pedidos}</td><td class="dir num">${d.vendas}</td>
+      <td class="dir num">${d.vendasBot}</td><td class="dir num">R$ ${reais(d.receitaCentavos)}</td>
+    </tr>`).join('') + '</tbody></table>';
 }
 
 $('#periodo').addEventListener('click', (e) => {
@@ -437,75 +635,82 @@ $('#periodo').addEventListener('click', (e) => {
   carregar();
 });
 
-/* ------------------------------------------------------------- tabelas */
-const ICONE = { pago:'✅', pendente:'⏳', recusado:'✕', estornado:'↩︎', expirado:'⌛' };
-const selo = s => `<span class="selo ${s}">${ICONE[s] || '•'} ${s}</span>`;
+/* -------------------------------------------------------------- tabelas */
+const GLIFO = { pago:'✓', pendente:'◷', recusado:'✕', estornado:'↩', expirado:'⌛' };
+const pill = s => `<span class="pill ${s}">${GLIFO[s] || '•'} ${s}</span>`;
+const vazio = (titulo, texto) => `<div class="vazio">
+  <svg viewBox="0 0 24 24"><path d="M3 7h18v13H3z"/><path d="M3 7l3-4h12l3 4M9 12h6"/></svg>
+  <b>${esc(titulo)}</b><span>${esc(texto)}</span></div>`;
 
 function tabelaPedidos(pedidos) {
-  if (!pedidos.length) return $('#tabela-pedidos').innerHTML = '<div class="vazio">Nenhum pedido ainda.</div>';
+  if (!pedidos.length) return $('#tabela-pedidos').innerHTML =
+    vazio('Nenhum pedido ainda', 'Assim que alguém comprar pelo site ou pelo bot, aparece aqui.');
   $('#tabela-pedidos').innerHTML = `<table><thead><tr>
-    <th>Quando</th><th>Cliente</th><th>Produto</th><th>Origem</th><th>Valor</th><th>Status</th></tr></thead><tbody>` +
-    pedidos.map(p => `<tr>
-      <td>${dataCurta(p.criadoEm)}</td>
-      <td>${escapar(p.cliente.nome)}<br><span class="mono">${escapar(p.cliente.email)}</span></td>
-      <td>${escapar(p.produto)}</td>
-      <td>${p.origem === 'telegram' ? '🤖 bot' : '🌐 site'} · ${escapar(p.metodo)}</td>
-      <td>R$ ${escapar(p.valor)}</td>
-      <td>${selo(p.status)}</td></tr>`).join('') + `</tbody></table>`;
+    <th>Quando</th><th>Cliente</th><th>Produto</th><th>Canal</th><th class="dir">Valor</th><th>Status</th>
+    </tr></thead><tbody>` + pedidos.map(p => `<tr>
+      <td class="num">${dataHora(p.criadoEm)}</td>
+      <td><div>${esc(p.cliente.nome)}</div><div class="mono">${esc(p.cliente.email)}</div></td>
+      <td>${esc(p.produto)}</td>
+      <td><span class="tag">${p.origem === 'telegram' ? '🤖 bot' : '🌐 site'}</span> <span class="mono">${esc(p.metodo)}</span></td>
+      <td class="dir num">R$ ${esc(p.valor)}</td>
+      <td>${pill(p.status)}</td></tr>`).join('') + '</tbody></table>';
 }
 
 function tabelaLeads(leads) {
-  if (!leads.length) return $('#tabela-leads').innerHTML = '<div class="vazio">Ninguém falou com o bot ainda.</div>';
+  if (!leads.length) return $('#tabela-leads').innerHTML =
+    vazio('Ninguém falou com o bot ainda', 'Divulgue o link do bot para começar a coletar contatos.');
   $('#tabela-leads').innerHTML = `<table><thead><tr>
-    <th>Nome</th><th>Usuário</th><th>E-mail</th><th>Msgs</th><th>Compras</th><th>Último contato</th></tr></thead><tbody>` +
-    leads.map(l => `<tr>
-      <td>${escapar(l.nome)}</td>
-      <td>${l.usuario ? '@' + escapar(l.usuario) : '<span class="mono">—</span>'}</td>
-      <td><span class="mono">${escapar(l.email || '—')}</span></td>
-      <td>${l.mensagens}</td><td>${l.compras}</td>
-      <td>${dataCurta(l.ultimoContato)}</td></tr>`).join('') + `</tbody></table>`;
+    <th>Nome</th><th>Usuário</th><th>E-mail</th><th class="dir">Msgs</th><th class="dir">Compras</th><th>Último contato</th>
+    </tr></thead><tbody>` + leads.map(l => `<tr>
+      <td>${esc(l.nome)}</td>
+      <td>${l.usuario ? '@' + esc(l.usuario) : '<span class="mono">—</span>'}</td>
+      <td class="mono">${esc(l.email || '—')}</td>
+      <td class="dir num">${l.mensagens}</td>
+      <td class="dir num">${l.compras}</td>
+      <td class="num">${dataHora(l.ultimoContato)}</td></tr>`).join('') + '</tbody></table>';
 }
 
 /* -------------------------------------------------------------- disparo */
+$('#msg-disparo').addEventListener('input', (e) => { $('#contador-disparo').textContent = e.target.value.length; });
+
 $('#btn-disparo').addEventListener('click', async () => {
   const mensagem = $('#msg-disparo').value.trim();
-  if (mensagem.length < 2) return avisar('#aviso-disparo', 'Escreva a mensagem antes de enviar.', 'erro');
+  if (mensagem.length < 2) return toast('Escreva a mensagem antes de enviar.', 'erro');
   const alvos = dados?.resumo.totalLeads || 0;
-  if (!confirm(`Enviar esta mensagem para até ${alvos} contato(s)? Não dá para cancelar depois de começar.`)) return;
+  if (!confirm(`Enviar para até ${alvos} contato(s)? Depois de começar não dá para cancelar.`)) return;
 
-  const botao = $('#btn-disparo');
-  botao.disabled = true; botao.textContent = 'Enviando…';
+  const b = $('#btn-disparo');
+  b.disabled = true; b.textContent = 'Enviando…';
   try {
     const r = await api('/api/painel-bot', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ acao: 'disparo', mensagem, apenasCompradores: $('#so-compradores').checked })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ acao:'disparo', mensagem, apenasCompradores: $('#so-compradores').checked })
     });
-    avisar('#aviso-disparo', `Enviado para ${r.enviados} de ${r.alvos} contatos. ${r.falhas} falha(s) — normalmente quem bloqueou o bot.`);
-    $('#msg-disparo').value = '';
-  } catch (e) { avisar('#aviso-disparo', e.message, 'erro'); }
-  finally { botao.disabled = false; botao.textContent = 'Enviar disparo'; }
+    toast(`Enviado para ${r.enviados} de ${r.alvos}. ${r.falhas} falha(s) — geralmente quem bloqueou o bot.`);
+    $('#msg-disparo').value = ''; $('#contador-disparo').textContent = '0';
+  } catch (e) { toast(e.message, 'erro'); }
+  finally { b.disabled = false; b.textContent = 'Enviar disparo'; }
 });
 
 /* ------------------------------------------------------------------ bot */
 async function statusBot() {
-  $('#status-bot').textContent = 'Consultando o Telegram…';
+  $('#status-bot').innerHTML = `<div class="esq" style="height:90px"></div>`;
   try {
     const r = await api('/api/painel-bot', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ acao: 'status' })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ acao:'status' })
     });
-    $('#status-bot').innerHTML = `
-      <table><tbody>
-        <tr><td>Bot</td><td><b>@${escapar(r.bot.usuario)}</b> — ${escapar(r.bot.nome)}</td></tr>
-        <tr><td>Webhook</td><td>${r.webhook.conectado
-          ? '✅ conectado<br><span class="mono">' + escapar(r.webhook.url) + '</span>'
-          : '⚠️ não conectado'}</td></tr>
-        <tr><td>Na fila</td><td>${r.webhook.pendentes} atualização(ões)</td></tr>
-        ${r.webhook.ultimoErro ? `<tr><td>Último erro</td><td style="color:#fca5a5">${escapar(r.webhook.ultimoErro)}</td></tr>` : ''}
-      </tbody></table>
-      <p class="sub" style="margin:14px 0 0">Link para divulgar: <a href="https://t.me/${escapar(r.bot.usuario)}" target="_blank" rel="noopener">t.me/${escapar(r.bot.usuario)}</a></p>`;
+    $('#status-bot').innerHTML = `<table><tbody>
+      <tr><td style="width:150px;color:var(--t3)">Bot</td><td><b>@${esc(r.bot.usuario)}</b> — ${esc(r.bot.nome)}</td></tr>
+      <tr><td style="color:var(--t3)">Webhook</td><td>${r.webhook.conectado
+        ? `<span class="pill pago">✓ conectado</span><div class="mono" style="margin-top:5px">${esc(r.webhook.url)}</div>`
+        : '<span class="pill pendente">◷ não conectado</span>'}</td></tr>
+      <tr><td style="color:var(--t3)">Fila</td><td class="num">${r.webhook.pendentes} atualização(ões)</td></tr>
+      ${r.webhook.ultimoErro ? `<tr><td style="color:var(--t3)">Último erro</td><td style="color:var(--ruim-t)">${esc(r.webhook.ultimoErro)}</td></tr>` : ''}
+      <tr><td style="color:var(--t3)">Divulgar</td><td><a href="https://t.me/${esc(r.bot.usuario)}" target="_blank" rel="noopener">t.me/${esc(r.bot.usuario)}</a></td></tr>
+    </tbody></table>`;
   } catch (e) {
-    $('#status-bot').innerHTML = `<div class="aviso erro">${escapar(e.message)}</div>`;
+    $('#status-bot').innerHTML = `<div class="faixa erro"><span>⚠</span><span>${esc(e.message)}</span></div>`;
   }
 }
 $('#btn-status-bot').addEventListener('click', statusBot);
@@ -513,33 +718,31 @@ $('#btn-status-bot').addEventListener('click', statusBot);
 $('#btn-conectar').addEventListener('click', async () => {
   try {
     const r = await api('/api/painel-bot', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ acao: 'conectar' })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ acao:'conectar' })
     });
-    avisar('#aviso-bot', 'Bot conectado em ' + r.url);
+    toast('Bot conectado em ' + r.url);
     statusBot();
-  } catch (e) { avisar('#aviso-bot', e.message, 'erro'); }
+  } catch (e) { toast(e.message, 'erro'); }
 });
 
 $('#btn-desconectar').addEventListener('click', async () => {
   if (!confirm('Desconectar o bot? Ele para de responder até você conectar de novo.')) return;
   try {
     await api('/api/painel-bot', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ acao: 'desconectar' })
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ acao:'desconectar' })
     });
-    avisar('#aviso-bot', 'Bot desconectado.');
+    toast('Bot desconectado.');
     statusBot();
-  } catch (e) { avisar('#aviso-bot', e.message, 'erro'); }
+  } catch (e) { toast(e.message, 'erro'); }
 });
 
 /* ----------------------------------------------------------- configuração */
 async function carregarConfig() {
   try {
     const r = await api('/api/painel-config');
-    configAtual = r.config;
     produtosEdit = JSON.parse(JSON.stringify(r.produtos));
-
     $('#cfg-nome').value = r.config.loja.nome;
     $('#cfg-suporte').value = r.config.loja.suporteTelegram;
     $('#cfg-email').value = r.config.loja.emailSuporte;
@@ -552,27 +755,27 @@ async function carregarConfig() {
     $('#cfg-pix').value = r.config.bot.pixGerado;
     $('#cfg-pos').value = r.config.bot.textoPosPagamento;
     desenharProdutos();
-  } catch (e) { avisar('#aviso-config', e.message, 'erro'); }
+  } catch (e) { toast(e.message, 'erro'); }
 }
 
 function desenharProdutos() {
-  const linhas = Object.values(produtosEdit).map(p => `<tr data-id="${escapar(p.id)}">
-    <td><input data-campo="nome" value="${escapar(p.nome)}"></td>
-    <td><input data-campo="descricao" value="${escapar(p.descricao || '')}"></td>
-    <td style="width:120px"><input data-campo="valor" value="${(p.valorCentavos/100).toFixed(2).replace('.', ',')}" inputmode="decimal"></td>
-    <td style="width:90px"><label style="margin:0"><input type="checkbox" data-campo="ativo" ${p.ativo !== false ? 'checked' : ''} style="width:auto"> ativo</label></td>
-  </tr>`).join('');
-  $('#tabela-produtos').innerHTML = `<table><thead><tr><th>Nome</th><th>Descrição</th><th>Preço (R$)</th><th></th></tr></thead><tbody>${linhas}</tbody></table>`;
+  $('#tabela-produtos').innerHTML = `<table><thead><tr>
+    <th style="width:26%">Nome</th><th>Descrição</th><th style="width:130px" class="dir">Preço (R$)</th><th style="width:100px">Estado</th>
+    </tr></thead><tbody>` + Object.values(produtosEdit).map(p => `<tr data-id="${esc(p.id)}">
+      <td><input data-campo="nome" value="${esc(p.nome)}"></td>
+      <td><input data-campo="descricao" value="${esc(p.descricao || '')}"></td>
+      <td><input data-campo="valor" class="num dir" inputmode="decimal" value="${(p.valorCentavos/100).toFixed(2).replace('.', ',')}"></td>
+      <td><label class="marcavel"><input type="checkbox" data-campo="ativo" ${p.ativo !== false ? 'checked' : ''}> ativo</label></td>
+    </tr>`).join('') + '</tbody></table>';
 }
 
 $('#btn-novo-produto').addEventListener('click', () => {
   const id = 'produto-' + (Object.keys(produtosEdit).length + 1);
-  produtosEdit[id] = { id, nome: 'Novo produto', descricao: '', valorCentavos: 9700, maxParcelas: 12, ativo: true };
+  produtosEdit[id] = { id, nome:'Novo produto', descricao:'', valorCentavos:9700, maxParcelas:12, ativo:true };
   desenharProdutos();
 });
 
 $('#btn-salvar-config').addEventListener('click', async () => {
-  /* Lê a tabela de volta para o objeto antes de enviar. */
   const produtos = {};
   $$('#tabela-produtos tr[data-id]').forEach(tr => {
     const id = tr.dataset.id;
@@ -587,33 +790,32 @@ $('#btn-salvar-config').addEventListener('click', async () => {
     };
   });
 
-  const botao = $('#btn-salvar-config');
-  botao.disabled = true; botao.textContent = 'Salvando…';
+  const b = $('#btn-salvar-config');
+  b.disabled = true; b.textContent = 'Salvando…';
   try {
     await api('/api/painel-config', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        loja: { nome: $('#cfg-nome').value, suporteTelegram: $('#cfg-suporte').value, emailSuporte: $('#cfg-email').value },
-        bot: {
-          ativo: $('#cfg-bot-ativo').checked,
-          boasVindas: $('#cfg-boas').value, textoCatalogo: $('#cfg-catalogo').value,
-          textoDuvidas: $('#cfg-duvidas').value, pedirEmail: $('#cfg-email-msg').value,
-          pedirCpf: $('#cfg-cpf').value, pixGerado: $('#cfg-pix').value,
-          textoPosPagamento: $('#cfg-pos').value
+        loja:{ nome:$('#cfg-nome').value, suporteTelegram:$('#cfg-suporte').value, emailSuporte:$('#cfg-email').value },
+        bot:{
+          ativo:$('#cfg-bot-ativo').checked, boasVindas:$('#cfg-boas').value,
+          textoCatalogo:$('#cfg-catalogo').value, textoDuvidas:$('#cfg-duvidas').value,
+          pedirEmail:$('#cfg-email-msg').value, pedirCpf:$('#cfg-cpf').value,
+          pixGerado:$('#cfg-pix').value, textoPosPagamento:$('#cfg-pos').value
         },
         produtos
       })
     });
-    avisar('#aviso-config', 'Configuração salva. Já vale para o site e para o bot.');
+    toast('Configuração salva. Já vale para o site e para o bot.');
     carregarConfig();
-  } catch (e) { avisar('#aviso-config', e.message, 'erro'); }
-  finally { botao.disabled = false; botao.textContent = 'Salvar configuração'; }
+  } catch (e) { toast(e.message, 'erro'); }
+  finally { b.disabled = false; b.textContent = 'Salvar configuração'; }
 });
 
-/* ------------------------------------------------------------- início */
+/* --------------------------------------------------------------- início */
 (async () => {
   try {
-    const r = await (await fetch('/api/painel-login', { credentials: 'same-origin' })).json();
+    const r = await (await fetch('/api/painel-login', { credentials:'same-origin' })).json();
     if (!r.configurado) {
       $('#erro-login').textContent = 'Defina PAINEL_SENHA nas variáveis de ambiente da Vercel para usar o painel.';
       $('#erro-login').hidden = false;
@@ -623,11 +825,12 @@ $('#btn-salvar-config').addEventListener('click', async () => {
   } catch { mostrarLogin(); }
 })();
 
-/* Atualiza sozinho enquanto a aba está visível. Pausa em segundo plano para
-   não gastar leitura do KV com a janela minimizada. */
-setInterval(() => {
-  if (!document.hidden && !$('#tela-painel').hidden) carregar();
-}, 30000);
+/* Atualiza sozinho com a aba visível; pausa em segundo plano para não gastar
+   leitura do banco com a janela minimizada. */
+setInterval(() => { if (!document.hidden && !$('#tela-painel').hidden) carregar(); }, 30000);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && !$('#tela-painel').hidden && atualizadoEm && Date.now() - atualizadoEm > 30000) carregar();
+});
 </script>
 </body>
 </html>
