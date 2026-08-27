@@ -16,15 +16,18 @@
 import { enviar, escapar, botConfigurado } from './_telegram.js';
 import { lerConfig, preencher, buscarProduto } from './_configuracao.js';
 import { atualizarLead, buscarLead } from './_leads.js';
+import { mascararEmail } from './_privacidade.js';
 
 export async function entregarAcesso(pedido) {
   const { cliente, id, produtoId } = pedido;
 
+  /* O id do pedido é a chave para achar tudo no painel; e-mail e nome não
+     precisam estar aqui. Este log roda em TODA venda, com ou sem
+     diagnóstico — era o vazamento de maior alcance do sistema. */
   console.log('[entrega] liberar acesso', {
     pedido: id,
     produto: produtoId,
-    email: cliente.email,
-    nome: cliente.nome,
+    destinatario: mascararEmail(cliente.email),
     origem: pedido.origem || 'site'
   });
 

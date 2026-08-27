@@ -21,6 +21,7 @@ import { validarCliente, limpar } from './_validacao.js';
 import { criarPagamentoPix, criarPagamentoCartao, STATUS } from './_gateway.js';
 import { salvarPedido } from './_pedidos.js';
 import { json, erro, lerJson, ipDoCliente, limiteExcedido } from './_http.js';
+import { semDadosPessoais, erroSemDadosPessoais } from './_privacidade.js';
 
 /* Endereço de cobrança. Cartão precisa; Pix não. É o que alimenta a análise
    antifraude do adquirente — e sem ele muitos gateways recusam ou quebram. */
@@ -75,12 +76,10 @@ function luhn(numero) {
 }
 
 /* Erros de rede do fetch chegam como "fetch failed", com o motivo real
-   escondido em e.cause (DNS, TLS, porta, timeout). Durante a integração,
-   é justamente a causa que interessa. */
-function detalharErro(e) {
-  const causa = e?.cause?.message || e?.cause?.code;
-  return causa ? `${e.message} | causa: ${causa}` : String(e?.message || e);
-}
+   escondido em e.cause (DNS, TLS, porta, timeout). Durante a integração é
+   justamente a causa que interessa — redigida, porque a mensagem do gateway
+   costuma embutir o corpo que enviamos. */
+const detalharErro = erroSemDadosPessoais;
 
 export function tokenAcesso(pedidoId) {
   return crypto.createHmac('sha256', CONFIG.segredoApp).update(pedidoId).digest('hex').slice(0, 32);
@@ -163,7 +162,9 @@ export default async function handler(req, res) {
       if (!cobranca.pixTexto) {
         console.error('[criar-pagamento] gateway não devolveu o código Pix', pedido.id);
         return erro(res, 502, 'O Pix foi criado mas o código não veio. Tente novamente ou use outra forma de pagamento.',
-          CONFIG.diagnostico ? { diagnostico: 'resposta do gateway: ' + JSON.stringify(cobranca.bruto).slice(0, 1200) } : {});
+          CONFIG.diagnostico
+            ? { diagnostico: 'resposta do gateway: ' + JSON.stringify(semDadosPessoais(cobranca.bruto)).slice(0, 1200) }
+            : {});
       }
 
       return json(res, 201, {
@@ -209,7 +210,7 @@ export default async function handler(req, res) {
        do gateway. */
     /* Registramos o id do pedido junto: se a cobrança tiver sido criada no
        gateway antes da falha, é por ele que se acha a transação no painel. */
-    console.error('[criar-pagamento] falha no pedido', pedido.id, '-', e);
+    console.error('[criar-pagamento] falha no pedido', pedido.id, '-', erroSemDadosPessoais(e));
 
     const mensagem = e.falhaDoGateway
       ? 'O processador de pagamentos está instável no momento. Antes de tentar de novo, confira se a cobrança já não foi gerada.'

@@ -44,6 +44,7 @@
 
 import crypto from 'node:crypto';
 import { CONFIG, ligado } from './_config.js';
+import { semDadosPessoais, textoSemDadosPessoais } from './_privacidade.js';
 
 /* Status normalizados usados por todo o sistema. Cada gateway tem os seus
    nomes; traduzimos tudo para estes cinco. */
@@ -57,23 +58,10 @@ export const STATUS = {
 
 const env = (nome, padrao = '') => process.env[nome] || padrao;
 
-/* Número de cartão e CVV nunca podem aparecer em log — nem em diagnóstico.
-   Log é armazenado, replicado e lido por gente; dado de cartão em log é uma
-   das falhas mais comuns de PCI. */
-function semDadosSensiveis(corpo) {
-  if (!corpo || typeof corpo !== 'object') return corpo;
-  const copia = JSON.parse(JSON.stringify(corpo));
-  /* Cobre todos os arranjos possíveis do bloco de cartão. */
-  for (const chave of ['card', 'credit_card', 'creditCard']) {
-    if (!copia[chave]) continue;
-    copia[chave] = {
-      ...copia[chave],
-      number: copia[chave].number ? '****' + String(copia[chave].number).slice(-4) : undefined,
-      cvv: copia[chave].cvv ? '***' : undefined
-    };
-  }
-  return copia;
-}
+/* Toda a redação vive em _privacidade.js. Antes, esta função cobria apenas o
+   bloco de cartão — e o corpo enviado ao gateway leva junto nome, e-mail,
+   CPF, telefone e endereço do comprador, que passavam intactos para o log. */
+const semDadosSensiveis = semDadosPessoais;
 
 /* ---------------------------------------------------------------- helpers */
 
@@ -108,15 +96,20 @@ async function chamarApi(caminho, corpo, metodo = 'POST') {
     const texto = await resposta.text();
 
     if (CONFIG.diagnostico) {
-      /* Log completo dos dois lados da conversa, para acertar o mapeamento
-         de campos durante a integração. Nunca deixe DIAGNOSTICO=1 ligado
-         depois: o corpo carrega dados pessoais do comprador. */
-      console.log('[gateway] POST', base + caminho, '\n  enviado:', JSON.stringify(semDadosSensiveis(corpo)),
-                  '\n  status:', resposta.status, '\n  recebido:', texto.slice(0, 1500));
+      /* Os dois lados da conversa, para acertar o mapeamento de campos
+         durante a integração. Ambos passam pela redação: o corpo leva os
+         dados do comprador, e a resposta do gateway costuma devolvê-los. */
+      console.log('[gateway] POST', base + caminho, '\n  enviado:', JSON.stringify(semDadosPessoais(corpo)),
+                  '\n  status:', resposta.status,
+                  '\n  recebido:', textoSemDadosPessoais(texto).slice(0, 1500));
     }
     let dados;
     try { dados = texto ? JSON.parse(texto) : {}; }
-    catch { throw new Error(`Resposta não-JSON do gateway (${resposta.status}): ${texto.slice(0, 200)}`); }
+    catch {
+      /* Esta mensagem chega ao cliente pelo campo "diagnostico": vai redigida
+         como qualquer outra resposta crua do gateway. */
+      throw new Error(`Resposta não-JSON do gateway (${resposta.status}): ${textoSemDadosPessoais(texto).slice(0, 200)}`);
+    }
 
     if (!resposta.ok) {
       /* Cada gateway põe a mensagem de erro num campo diferente. Tentamos os
@@ -125,8 +118,11 @@ async function chamarApi(caminho, corpo, metodo = 'POST') {
       const msg = dados.message || dados.erro || dados.error || dados.msg || dados.detail
         || (dados.errors ? JSON.stringify(dados.errors) : '')
         || `HTTP ${resposta.status}`;
+      /* Este texto vira o campo "diagnostico" da resposta HTTP. Vai redigido:
+         a mensagem precisa nomear o campo com problema, não repetir os dados
+         de quem está comprando. */
       const cru = CONFIG.diagnostico
-        ? ` | HTTP ${resposta.status} | resposta: ${texto ? texto.slice(0, 900) : '(corpo vazio)'}`
+        ? ` | HTTP ${resposta.status} | resposta: ${texto ? textoSemDadosPessoais(texto).slice(0, 900) : '(corpo vazio)'}`
         : '';
       /* 5xx é falha do lado do gateway, não do nosso corpo. A distinção
          importa: em erro de validação (4xx) a correção é nossa; em 5xx a
@@ -410,7 +406,7 @@ export async function criarPagamentoPix({ pedido, produto, cliente }) {
 
   if (!texto) {
     console.error('[gateway] Pix criado mas sem código copia e cola na resposta:',
-                  JSON.stringify(r).slice(0, 1500));
+                  JSON.stringify(semDadosPessoais(r)).slice(0, 1500));
   }
 
   return {

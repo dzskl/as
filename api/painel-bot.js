@@ -9,6 +9,7 @@
 import { protegido } from './_painel.js';
 import { json, erro, lerJson, ipDoCliente } from './_http.js';
 import { registrar } from './_auditoria.js';
+import { mascararId, erroSemDadosPessoais } from './_privacidade.js';
 import { chamar, configurarWebhook, infoWebhook, infoBot, enviar, botConfigurado } from './_telegram.js';
 import { listarLeads, totalLeads } from './_leads.js';
 import { CONFIG } from './_config.js';
@@ -32,7 +33,7 @@ async function disparar(mensagem, apenasCompradores) {
         falhas++;
         /* "bot was blocked by the user" é o caso mais comum e não é erro
            nosso — a pessoa saiu, e o registro fica para não insistir. */
-        console.warn('[disparo] falhou para', lead.chatId, e.message);
+        console.warn('[disparo] falhou para', mascararId(lead.chatId), e.message);
       }
     }));
     if (i + LOTE < alvos.length) await new Promise(r => setTimeout(r, PAUSA_MS));
@@ -114,8 +115,10 @@ async function handler(req, res, eu) {
     return erro(res, 400, 'Ação desconhecida');
 
   } catch (e) {
-    console.error('[painel-bot]', corpo.acao, e);
-    return erro(res, 502, e.message || 'Falha ao falar com o Telegram');
+    /* A mensagem do Telegram não costuma trazer dado do comprador, mas passa
+       pela redação assim mesmo: é o padrão do projeto, e sai de graça. */
+    console.error('[painel-bot]', corpo.acao, erroSemDadosPessoais(e));
+    return erro(res, 502, erroSemDadosPessoais(e) || 'Falha ao falar com o Telegram');
   }
 }
 

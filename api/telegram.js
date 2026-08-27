@@ -25,6 +25,7 @@ import { emailValido, cpfValido, telefoneValido, soDigitos, limpar } from './_va
 import { enviar, editar, responderBotao, teclado, escapar, botConfigurado } from './_telegram.js';
 import { incrementar } from './_kv.js';
 import { json, erro, lerCorpoBruto } from './_http.js';
+import { mascararId, erroSemDadosPessoais } from './_privacidade.js';
 
 export const config = { api: { bodyParser: false } };
 
@@ -47,7 +48,7 @@ export default async function handler(req, res) {
   try {
     await processar(atualizacao);
   } catch (e) {
-    console.error('[telegram] falha ao processar atualização:', e);
+    console.error('[telegram] falha ao processar atualização:', erroSemDadosPessoais(e));
   }
   return json(res, 200, { ok: true });
 }
@@ -234,7 +235,7 @@ async function gerarPix(chatId, produtoId, cfg) {
     return enviar(chatId, '`' + cobranca.pixTexto + '`');
 
   } catch (e) {
-    console.error('[telegram] falha ao gerar Pix para', chatId, e);
+    console.error('[telegram] falha ao gerar Pix para', mascararId(chatId), erroSemDadosPessoais(e));
     return enviar(chatId,
       'Não consegui gerar o Pix agora. Tente de novo em instantes ou fale com ' +
       `@${cfg.loja.suporteTelegram}.`);
