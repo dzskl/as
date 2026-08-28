@@ -4,16 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Bot 24h — o atendente do seu Telegram que nunca dorme</title>
-<meta name="description" content="O Bot 24h responde seus clientes no Telegram em 1 segundo, envia catálogo e link de pagamento e guarda todos os contatos. Instala em 5 minutos, sem programar. Pagamento único, acesso vitalício.">
-<meta name="theme-color" content="#0a141d">
+<title>Bot 24h — o bot de vendas do Telegram com painel e checkout próprios</title>
+<meta name="description" content="Template completo: o bot que vende no Telegram, o painel que mostra cada pedido e o checkout com Pix e cartão no seu domínio. Você implanta, conecta suas contas e edita os textos. Pagamento único.">
+<meta name="theme-color" content="#0b0e13">
 <link rel="canonical" data-empresa-href="siteBarra" href="https://seudominio.com.br/">
 
 <!-- Preview ao compartilhar o link (WhatsApp, Telegram, Instagram, Facebook) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Bot 24h">
-<meta property="og:title" content="Bot 24h — o atendente do seu Telegram que nunca dorme">
-<meta property="og:description" content="Responde em 1 segundo, 24 horas por dia. Instala em 5 minutos, sem programar. Pagamento único.">
+<meta property="og:title" content="Bot 24h — bot de vendas no Telegram, com painel e checkout próprios">
+<meta property="og:description" content="O sistema inteiro: bot, painel e checkout com Pix e cartão. Você implanta, conecta suas contas e edita os textos. Pagamento único.">
 <meta property="og:image" content="capa.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -21,283 +21,243 @@
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
 
-<!-- Ícone da aba (SVG embutido — não precisa de arquivo) -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%232aabee'/%3E%3Cpath d='M20.4 5.6 17.8 17.7c-.2.9-.7 1-1.4.6l-3.9-2.9-1.9 1.8c-.2.2-.4.4-.8.4l.3-4 7.3-6.6c.3-.3-.1-.5-.5-.2l-9 5.7-3.9-1.2c-.9-.3-.9-.9.2-1.3l15.2-5.9c.7-.2 1.3.2 1 1.5z' fill='%23042231'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%233b9eff'/%3E%3Cpath d='M20.4 5.6 17.8 17.7c-.2.9-.7 1-1.4.6l-3.9-2.9-1.9 1.8c-.2.2-.4.4-.8.4l.3-4 7.3-6.6c.3-.3-.1-.5-.5-.2l-9 5.7-3.9-1.2c-.9-.3-.9-.9.2-1.3l15.2-5.9c.7-.2 1.3.2 1 1.5z' fill='%2306121f'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 /* =========================================================
-   PALETA — troque estas cores para mudar o visual inteiro
+   PALETA — tirada dos prints de referência (painel escuro,
+   superfícies chapadas, borda de 1px visível, um azul só).
    ========================================================= */
 :root{
-  --azul:#2aabee;          /* cor da marca (azul do Telegram) */
-  --azul-2:#1c8fd0;
-  --verde:#22c55e;         /* botões de compra e preço */
-  --vermelho:#f87171;
-  --bg:#0a141d;
-  --bg-2:#0e1a25;
-  --card:#12212e;
-  --linha:rgba(255,255,255,.09);
-  --txt:#eaf2f8;
-  --txt-2:#93a6b5;
-  --amarelo:#fbbf24;
-  --radius:18px;
-  --max:1120px;
-  --fonte:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --fundo:#0b0e13;        /* fundo mais profundo */
+  --fundo-2:#0f131a;      /* faixa alternada */
+  --sup:#151a22;          /* cartão / painel */
+  --sup-2:#1b212b;        /* campo, item elevado */
+  --linha:#232b36;        /* fio de 1px — o traço que define o visual */
+  --linha-2:#2e3743;      /* fio em destaque */
+  --txt:#f2f5f9;
+  --txt-2:#98a2b3;
+  --txt-3:#6b7684;
+  --azul:#3b9eff;         /* ÚNICA cor de destaque */
+  --azul-2:#2b7fd4;
+  --azul-fraco:rgba(59,158,255,.10);
+  --r:10px;               /* raio contido: painel, não bolha */
+  --r-p:8px;
+  --r-s:6px;
+  --max:1080px;
+  --fonte:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{
-  font-family:var(--fonte);background:var(--bg);color:var(--txt);
-  line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;
-  padding-bottom:76px;
+  font-family:var(--fonte);background:var(--fundo);color:var(--txt);
+  line-height:1.62;-webkit-font-smoothing:antialiased;
+  font-size:16px;padding-bottom:72px;
 }
 img{max-width:100%;display:block}
 a{color:inherit;text-decoration:none}
-.wrap{width:100%;max-width:var(--max);margin:0 auto;padding:0 20px}
-section{padding:84px 0;position:relative}
-@media(max-width:640px){section{padding:56px 0}}
+svg{display:block;flex:none}
 
-h1,h2,h3{line-height:1.15;letter-spacing:-.02em;font-weight:800}
-h1{font-size:clamp(2rem,5.2vw,3.5rem);font-weight:900}
-h2{font-size:clamp(1.6rem,3.8vw,2.5rem)}
-h3{font-size:1.15rem}
+.wrap{width:100%;max-width:var(--max);margin:0 auto;padding:0 24px}
+section{padding:96px 0}
+.faixa{background:var(--fundo-2);border-block:1px solid var(--linha)}
+@media(max-width:720px){section{padding:64px 0}}
+
+h1,h2,h3{line-height:1.16;letter-spacing:-.022em;font-weight:800}
+h1{font-size:clamp(2.05rem,4.6vw,3.15rem);letter-spacing:-.032em}
+h2{font-size:clamp(1.55rem,3.1vw,2.15rem)}
+h3{font-size:1.03rem;font-weight:700;letter-spacing:-.01em}
 p{color:var(--txt-2)}
-.destaque{color:var(--azul)}
-.marca-texto{background:linear-gradient(180deg,transparent 62%,rgba(42,171,238,.35) 62%)}
 
-/* ---------- Botões ---------- */
+/* Rótulo de grupo — igual às seções da barra lateral do painel de referência */
+.rotulo{
+  font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--txt-3);margin-bottom:14px;
+}
+.cabeca{max-width:660px;margin-bottom:52px}
+.cabeca p{margin-top:14px;font-size:1.05rem}
+
+/* ---------- Botões: retângulo de canto contido, sem brilho ---------- */
 .btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:10px;
-  padding:17px 34px;border-radius:999px;font-weight:700;font-size:1.05rem;
-  border:0;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,filter .18s;
-  text-align:center;
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  padding:13px 22px;border-radius:var(--r-p);font-weight:700;font-size:.95rem;
+  font-family:inherit;border:1px solid transparent;cursor:pointer;
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
 }
-.btn-primario{
-  background:linear-gradient(135deg,var(--verde),#16a34a);color:#052e13;
-  box-shadow:0 12px 30px -10px rgba(34,197,94,.65);
-}
-.btn-primario:hover{transform:translateY(-2px);box-shadow:0 18px 40px -12px rgba(34,197,94,.8)}
-.btn-secundario{background:rgba(255,255,255,.07);color:var(--txt);border:1px solid var(--linha)}
-.btn-secundario:hover{background:rgba(255,255,255,.12)}
-.btn-grande{padding:20px 44px;font-size:1.15rem;width:100%;max-width:440px}
-.btn-pulse{animation:pulse 2.4s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 12px 30px -10px rgba(34,197,94,.65)}50%{box-shadow:0 12px 44px -6px rgba(34,197,94,.95)}}
+.btn-p{background:var(--azul);color:#06121f;border-color:var(--azul)}
+.btn-p:hover{background:#5aadff;border-color:#5aadff}
+.btn-s{background:transparent;color:var(--txt);border-color:var(--linha-2)}
+.btn-s:hover{border-color:var(--txt-3);background:var(--sup)}
+.btn-bloco{width:100%;padding:15px 22px;font-size:1rem}
 
-.selo{
-  display:inline-flex;align-items:center;gap:8px;padding:7px 16px;border-radius:999px;
-  background:rgba(42,171,238,.12);border:1px solid rgba(42,171,238,.3);
-  color:var(--azul);font-size:.85rem;font-weight:600;
+.chip{
+  display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;
+  border:1px solid var(--linha-2);background:var(--sup);
+  font-size:.75rem;font-weight:600;color:var(--txt-2);
 }
-.subtexto{font-size:.86rem;color:var(--txt-2);margin-top:14px}
+.chip svg{color:var(--azul)}
 
 /* ---------- Topo ---------- */
-header{
-  position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);
-  background:rgba(10,20,29,.82);border-bottom:1px solid var(--linha);
-}
-.nav{display:flex;align-items:center;justify-content:space-between;height:68px}
-.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.1rem}
-.logo-icone{
-  width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--azul),var(--azul-2));
-}
-.nav-links{display:flex;gap:28px;font-size:.94rem;color:var(--txt-2);font-weight:500}
+header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--linha)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:62px;gap:20px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.02rem;letter-spacing:-.02em}
+.logo-i{width:28px;height:28px;border-radius:var(--r-s);background:var(--azul);display:grid;place-items:center}
+.nav-links{display:flex;gap:26px;font-size:.9rem;color:var(--txt-2);font-weight:600}
 .nav-links a:hover{color:var(--txt)}
-.nav .btn{padding:11px 22px;font-size:.92rem}
-@media(max-width:900px){.nav-links{display:none}}
-@media(max-width:520px){.nav .btn{display:none}}
+.nav .btn{padding:9px 16px;font-size:.87rem}
+@media(max-width:880px){.nav-links{display:none}}
 
 /* ---------- Hero ---------- */
-.hero{padding-top:56px;overflow:hidden}
-.hero::before{
-  content:"";position:absolute;inset:-20% 0 auto 50%;transform:translateX(-50%);
-  width:900px;height:700px;pointer-events:none;
-  background:radial-gradient(closest-side,rgba(42,171,238,.22),transparent 70%);
-}
-.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:56px;align-items:center;position:relative}
-.hero p.lead{font-size:1.15rem;margin:22px 0 30px;max-width:560px}
-.hero-ctas{display:flex;flex-wrap:wrap;gap:14px}
-.hero-bullets{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:26px;font-size:.9rem;color:var(--txt-2)}
-.hero-bullets span{display:flex;align-items:center;gap:7px}
-@media(max-width:900px){
-  .hero-grid{grid-template-columns:1fr;gap:40px}
-  .hero-ctas .btn{width:100%;max-width:none}
+.hero{padding-top:72px;padding-bottom:88px}
+.hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:60px;align-items:center}
+.hero h1{margin:18px 0 20px}
+.hero .lead{font-size:1.09rem;max-width:520px}
+.hero-ctas{display:flex;flex-wrap:wrap;gap:12px;margin:30px 0 18px}
+.hero-nota{font-size:.87rem;color:var(--txt-3);display:flex;align-items:center;gap:8px}
+.hero-nota svg{color:var(--azul)}
+@media(max-width:880px){
+  .hero{padding-top:48px}
+  .hero-grid{grid-template-columns:1fr;gap:44px}
+  .hero-ctas .btn{flex:1 1 100%}
 }
 
-/* ---------- Mockup de celular ---------- */
-.fone{
-  width:100%;max-width:330px;margin:0 auto;background:#0b1c28;border:1px solid var(--linha);
-  border-radius:34px;padding:12px;box-shadow:0 40px 80px -30px rgba(0,0,0,.9);overflow:hidden;
+/* ---------- Demonstração do bot (janela de chat chapada) ---------- */
+.demo{background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);overflow:hidden}
+.demo-topo{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--linha);background:var(--sup-2)}
+.demo-av{width:30px;height:30px;border-radius:var(--r-s);background:var(--azul);display:grid;place-items:center}
+.demo-nome{font-weight:700;font-size:.88rem;line-height:1.25}
+.demo-sub{font-size:.72rem;color:var(--txt-3)}
+.demo-tag{margin-left:auto;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-3)}
+.chat{padding:18px 16px;display:flex;flex-direction:column;gap:9px;background:var(--fundo-2)}
+.msg{max-width:86%;padding:9px 13px;font-size:.855rem;line-height:1.5;border-radius:var(--r)}
+.msg.bot{background:var(--sup);border:1px solid var(--linha);align-self:flex-start;border-top-left-radius:3px;color:var(--txt)}
+.msg.cli{background:var(--azul);color:#06121f;align-self:flex-end;border-bottom-right-radius:3px;font-weight:600}
+.msg b{font-weight:700}
+.teclado{display:flex;flex-direction:column;gap:5px;margin-top:10px}
+.teclado span{
+  border:1px solid var(--linha-2);border-radius:var(--r-s);padding:7px 10px;
+  font-size:.78rem;font-weight:600;color:var(--azul);text-align:center;
 }
-.fone-topo{display:flex;align-items:center;gap:10px;padding:10px 8px 14px;border-bottom:1px solid var(--linha)}
-.fone-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--azul),var(--azul-2));display:grid;place-items:center;font-weight:800;font-size:.9rem;color:#04202f}
-.fone-nome{font-weight:700;font-size:.92rem;line-height:1.2}
-.fone-status{font-size:.72rem;color:var(--verde)}
-.chat{padding:16px 6px 6px;display:flex;flex-direction:column;gap:10px}
-.hora{text-align:center;font-size:.68rem;color:var(--txt-2);opacity:.8;margin:2px 0}
-.bolha{
-  max-width:84%;padding:10px 14px;border-radius:16px;font-size:.86rem;line-height:1.45;
-  opacity:0;transform:translateY(8px);animation:entra .45s forwards;
+.demo-pe{padding:10px 16px;border-top:1px solid var(--linha);font-size:.72rem;color:var(--txt-3)}
+
+/* ---------- Entregáveis: ficha técnica, não grade de cartões ---------- */
+.entrega{border-top:1px solid var(--linha)}
+.item{
+  display:grid;grid-template-columns:44px 1fr 160px;gap:26px;align-items:start;
+  padding:26px 0;border-bottom:1px solid var(--linha);
 }
-.bolha.bot{background:#1b2f3f;border-bottom-left-radius:5px;align-self:flex-start}
-.bolha.eu{background:linear-gradient(135deg,var(--azul),var(--azul-2));color:#04202f;font-weight:500;border-bottom-right-radius:5px;align-self:flex-end}
-.bolha b{color:var(--txt)}
-.bolha.eu b{color:#04202f}
-.botoes-bot{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
-.botoes-bot span{font-size:.74rem;background:rgba(42,171,238,.16);border:1px solid rgba(42,171,238,.3);color:var(--azul);padding:4px 10px;border-radius:8px}
-@keyframes entra{to{opacity:1;transform:translateY(0)}}
-
-/* ---------- Faixa de números ---------- */
-.faixa{border-block:1px solid var(--linha);background:var(--bg-2);padding:34px 0}
-.numeros{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;text-align:center}
-.numeros strong{display:block;font-size:1.9rem;font-weight:900;color:var(--txt)}
-.numeros span{font-size:.85rem;color:var(--txt-2)}
-@media(max-width:700px){.numeros{grid-template-columns:repeat(2,1fr);gap:26px}}
-
-/* ---------- Blocos ---------- */
-.cabecalho{text-align:center;max-width:700px;margin:0 auto 52px}
-.cabecalho p{margin-top:16px;font-size:1.05rem}
-.grid{display:grid;gap:20px}
-.g2{grid-template-columns:repeat(2,1fr)}
-.g3{grid-template-columns:repeat(3,1fr)}
-@media(max-width:860px){.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}}
-
-.card{
-  background:var(--card);border:1px solid var(--linha);border-radius:var(--radius);padding:28px;
-  transition:transform .2s ease,border-color .2s ease;
+.item-n{font-size:.8rem;font-weight:800;color:var(--txt-3);letter-spacing:.06em;padding-top:3px}
+.item h3{margin-bottom:7px}
+.item p{font-size:.94rem}
+.item-meta{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-3);text-align:right;padding-top:4px}
+@media(max-width:760px){
+  .item{grid-template-columns:34px 1fr;gap:16px}
+  .item-meta{grid-column:2;text-align:left;padding-top:0}
 }
-.card:hover{transform:translateY(-4px);border-color:rgba(42,171,238,.4)}
-.card h3{margin-bottom:10px}
-.card p{font-size:.95rem}
-.icone{
-  width:46px;height:46px;border-radius:13px;display:grid;place-items:center;margin-bottom:18px;
-  background:rgba(42,171,238,.13);border:1px solid rgba(42,171,238,.25);font-size:1.3rem;
-}
-.card-dor .icone{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.28)}
 
-/* ---------- Antes x Depois ---------- */
-.comparativo{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px;margin:0 auto}
-.coluna{border-radius:var(--radius);border:1px solid var(--linha);padding:28px;background:var(--card)}
-.coluna.depois{border-color:rgba(34,197,94,.4);background:linear-gradient(180deg,rgba(34,197,94,.06),transparent)}
-.coluna h3{display:flex;align-items:center;gap:10px;margin-bottom:20px;font-size:1.05rem}
-.coluna li{list-style:none;display:flex;gap:11px;padding:9px 0;font-size:.95rem;color:var(--txt-2);border-top:1px solid var(--linha)}
-.coluna li:first-of-type{border-top:0}
-.x{color:var(--vermelho);font-weight:900;flex:0 0 16px}
-.v{color:var(--verde);font-weight:900;flex:0 0 16px}
-.coluna.depois li{color:var(--txt)}
-@media(max-width:760px){.comparativo{grid-template-columns:1fr}}
-
-/* ---------- Passos ---------- */
-.passos{counter-reset:passo;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
-.passo{position:relative;padding-top:14px}
+/* ---------- Passos: trilho vertical ---------- */
+.passos{position:relative;padding-left:34px;max-width:760px}
+.passos::before{content:"";position:absolute;left:9px;top:8px;bottom:8px;width:1px;background:var(--linha)}
+.passo{position:relative;padding:0 0 34px}
+.passo:last-child{padding-bottom:0}
 .passo::before{
-  counter-increment:passo;content:counter(passo);
-  display:grid;place-items:center;width:44px;height:44px;border-radius:50%;margin-bottom:18px;
-  background:linear-gradient(135deg,var(--azul),var(--azul-2));color:#04202f;font-weight:900;font-size:1.1rem;
+  content:"";position:absolute;left:-30px;top:7px;width:9px;height:9px;border-radius:50%;
+  background:var(--fundo);border:2px solid var(--linha-2);
 }
-.passo p{font-size:.95rem;margin-top:8px}
-@media(max-width:860px){.passos{grid-template-columns:1fr;gap:28px}}
+.passo:first-child::before{background:var(--azul);border-color:var(--azul)}
+.passo h3{margin-bottom:6px}
+.passo p{font-size:.94rem;max-width:620px}
+.faixa .passos::before,.faixa .passo::before{background-color:var(--fundo-2)}
+.faixa .passo:first-child::before{background:var(--azul)}
 
-/* ---------- Entregáveis ---------- */
-.inclui{display:grid;grid-template-columns:repeat(2,1fr);gap:14px 30px;max-width:880px;margin:0 auto}
-.inclui li{display:flex;gap:12px;align-items:flex-start;list-style:none;font-size:.98rem;color:var(--txt-2)}
-.inclui li b{color:var(--txt)}
-.check{flex:0 0 22px;height:22px;border-radius:50%;background:rgba(34,197,94,.15);color:var(--verde);display:grid;place-items:center;font-size:.75rem;font-weight:900;margin-top:3px}
-@media(max-width:700px){.inclui{grid-template-columns:1fr}}
-
-/* ---------- Depoimentos ---------- */
-.depo{background:var(--card);border:1px solid var(--linha);border-radius:var(--radius);padding:26px}
-.estrelas{color:var(--amarelo);font-size:.95rem;letter-spacing:2px;margin-bottom:12px}
-.depo p{color:var(--txt);font-size:.97rem}
-.autor{display:flex;align-items:center;gap:12px;margin-top:20px}
-.autor .foto{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#334e63,#1f3547);display:grid;place-items:center;font-weight:700;font-size:.9rem}
-.autor small{display:block;color:var(--txt-2);font-weight:400}
-.autor b{font-size:.93rem}
-
-/* ---------- Preço ---------- */
-#preco{background:var(--bg-2);border-block:1px solid var(--linha)}
-.caixa-preco{
-  max-width:560px;margin:0 auto;background:var(--card);border:1px solid rgba(34,197,94,.35);
-  border-radius:24px;padding:44px 34px 40px;text-align:center;position:relative;
-  box-shadow:0 30px 70px -30px rgba(34,197,94,.35);
+/* ---------- Janela de prova visual ---------- */
+.janela{border:1px solid var(--linha);border-radius:var(--r);overflow:hidden;background:var(--sup)}
+.janela-topo{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--linha);background:var(--sup-2)}
+.pt{width:10px;height:10px;border-radius:50%;background:var(--linha-2)}
+.janela-url{margin-left:10px;font-size:.74rem;color:var(--txt-3)}
+.slot{
+  min-height:300px;display:grid;place-items:center;text-align:center;padding:40px 24px;
+  border:1px dashed var(--linha-2);margin:14px;border-radius:var(--r-s);background:var(--fundo-2);
 }
-.fita{
-  position:absolute;top:-14px;left:50%;transform:translateX(-50%);
-  background:linear-gradient(135deg,var(--verde),#16a34a);color:#052e13;
-  padding:6px 20px;border-radius:999px;font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;
-}
-.de{color:var(--txt-2);text-decoration:line-through;font-size:1.05rem}
-.valor{display:flex;align-items:flex-start;justify-content:center;gap:6px;margin:6px 0 4px}
-.valor .cifrao{font-size:1.4rem;font-weight:700;margin-top:12px;color:var(--txt)}
-.valor .num{font-size:4rem;font-weight:900;line-height:1;color:var(--txt);letter-spacing:-.03em}
-.parcela{color:var(--txt-2);font-size:.95rem;margin-bottom:26px}
-.caixa-preco .inclui{grid-template-columns:1fr;text-align:left;margin-bottom:30px;gap:11px}
-.pagamentos{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px;font-size:.78rem;color:var(--txt-2)}
-.pagamentos span{border:1px solid var(--linha);border-radius:8px;padding:5px 11px}
+.slot p{font-size:.86rem;max-width:340px}
+.slot .rotulo{margin-bottom:8px}
 
-/* ---------- Garantia ---------- */
-.garantia{
-  display:flex;gap:24px;align-items:center;max-width:800px;margin:44px auto 0;
-  background:var(--card);border:1px solid var(--linha);border-radius:var(--radius);padding:28px;
-}
-.selo-garantia{
-  flex:0 0 84px;height:84px;border-radius:50%;display:grid;place-items:center;text-align:center;
-  background:rgba(251,191,36,.12);border:2px dashed rgba(251,191,36,.5);color:var(--amarelo);
-  font-weight:900;font-size:.72rem;line-height:1.1;
-}
-@media(max-width:640px){.garantia{flex-direction:column;text-align:center}}
+/* ---------- Preço: resumo de pedido, como o checkout ---------- */
+.compra{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
+@media(max-width:880px){.compra{grid-template-columns:1fr}}
+.pedido{background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);overflow:hidden}
+.pedido-topo{padding:16px 22px;border-bottom:1px solid var(--linha);font-weight:700;font-size:.92rem}
+.linha-i{display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:13px 22px;border-bottom:1px solid var(--linha);font-size:.9rem}
+.linha-i span:first-child{color:var(--txt-2)}
+.linha-i span:last-child{color:var(--txt);font-weight:600;white-space:nowrap}
+.linha-i.total{padding:18px 22px;font-size:1rem}
+.linha-i.total span:first-child{color:var(--txt);font-weight:700}
+.linha-i.total span:last-child{font-size:1.7rem;font-weight:800;letter-spacing:-.03em}
+.pedido-pe{padding:20px 22px}
+.pedido-pe .sub{font-size:.82rem;color:var(--txt-3);margin-top:12px;text-align:center}
+.meios{display:flex;gap:7px;flex-wrap:wrap;padding:0 22px 20px}
+.meios span{border:1px solid var(--linha);border-radius:var(--r-s);padding:4px 10px;font-size:.74rem;color:var(--txt-3);font-weight:600}
 
-/* ---------- Sobre / assinatura ---------- */
-.sobre{display:grid;grid-template-columns:150px 1fr;gap:34px;align-items:center;max-width:860px;margin:0 auto}
-.sobre .foto-grande{
-  width:150px;height:150px;border-radius:24px;background:linear-gradient(135deg,#1e3a4f,#1f3547);
-  display:grid;place-items:center;font-size:3rem;border:1px solid var(--linha);
-}
-@media(max-width:700px){.sobre{grid-template-columns:1fr;text-align:center;gap:22px}.sobre .foto-grande{margin:0 auto}}
+.garantia{background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);padding:26px}
+.garantia h3{margin:14px 0 10px}
+.garantia p{font-size:.89rem;line-height:1.66}
+.garantia .selo{width:36px;height:36px;border-radius:var(--r-s);background:var(--azul-fraco);border:1px solid rgba(59,158,255,.28);display:grid;place-items:center;color:var(--azul)}
 
-/* ---------- FAQ ---------- */
-.faq{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
-details{background:var(--card);border:1px solid var(--linha);border-radius:14px;overflow:hidden}
+/* ---------- Depoimentos: sem avatar, sem estrela decorativa ---------- */
+.depos{display:grid;grid-template-columns:repeat(3,1fr);gap:0;align-items:stretch}
+/* Coluna flex para os fios de assinatura ficarem na MESMA altura mesmo com
+   depoimentos de comprimentos diferentes — texto irregular é natural, fio
+   desalinhado parece descuido.
+   O bloco de assinatura é div.depo-pe, não <footer>: o <footer> da página
+   já tem padding de 36px e cor próprias, e herdá-las aqui abria um rombo
+   embaixo de cada depoimento. */
+.depo{padding:0 28px;border-left:1px solid var(--linha);display:flex;flex-direction:column}
+.depo:first-child{padding-left:0;border-left:0}
+.depo:last-child{padding-right:0}
+.depo p{color:var(--txt);font-size:.96rem;line-height:1.66}
+.depo-pe{margin-top:auto;padding-top:16px;border-top:1px solid var(--linha)}
+.depo-pe b{font-size:.88rem;font-weight:700;display:block;color:var(--txt);line-height:1.5}
+.depo-pe small{font-size:.79rem;color:var(--txt-3)}
+@media(max-width:860px){
+  .depos{grid-template-columns:1fr;gap:28px}
+  .depo{padding:0;border-left:0;border-top:1px solid var(--linha);padding-top:26px}
+  .depo-pe{margin-top:16px}
+  .depo:first-child{border-top:0;padding-top:0}
+}
+
+/* ---------- FAQ: fios, não caixas ---------- */
+.faq{max-width:780px;border-top:1px solid var(--linha)}
+details{border-bottom:1px solid var(--linha)}
 summary{
-  padding:20px 24px;cursor:pointer;font-weight:600;font-size:1rem;list-style:none;
-  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  padding:20px 0;cursor:pointer;font-weight:700;font-size:.98rem;list-style:none;
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
 }
 summary::-webkit-details-marker{display:none}
-summary::after{content:"+";font-size:1.5rem;color:var(--azul);font-weight:400;transition:transform .2s}
-details[open] summary::after{transform:rotate(45deg)}
-details p{padding:0 24px 22px;font-size:.95rem}
-
-/* ---------- CTA final ---------- */
-.final{text-align:center;background:linear-gradient(180deg,var(--bg),#0f2233)}
-.final h2{max-width:760px;margin:0 auto 18px}
-.final p{max-width:580px;margin:0 auto 32px;font-size:1.05rem}
+summary::after{content:"";width:11px;height:11px;flex:none;border-right:2px solid var(--txt-3);border-bottom:2px solid var(--txt-3);transform:rotate(45deg) translate(-3px,-3px);transition:transform .2s}
+details[open] summary{color:var(--azul)}
+details[open] summary::after{border-color:var(--azul);transform:rotate(225deg) translate(-3px,-3px)}
+details p{padding:0 0 22px;font-size:.93rem;max-width:660px}
 
 /* ---------- Rodapé ---------- */
-footer{border-top:1px solid var(--linha);padding:40px 0;font-size:.85rem;color:var(--txt-2)}
-.rodape{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;align-items:center}
+footer{border-top:1px solid var(--linha);padding:36px 0;font-size:.84rem;color:var(--txt-3)}
+.rodape{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;align-items:center}
 .rodape a:hover{color:var(--txt)}
-.aviso{margin-top:22px;font-size:.76rem;line-height:1.6;color:#5f7385;max-width:860px}
+.aviso{margin-top:20px;font-size:.75rem;line-height:1.65;color:#55606d;max-width:820px}
 
-/* ---------- Barra fixa (mobile) ---------- */
-.barra-fixa{
-  position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;
-  padding:12px 16px;background:rgba(10,20,29,.95);backdrop-filter:blur(10px);border-top:1px solid var(--linha);
-}
-.barra-fixa .btn{width:100%;padding:15px}
+/* ---------- Barra fixa (celular) ---------- */
+.barra-fixa{position:fixed;left:0;right:0;bottom:0;z-index:60;display:none;padding:10px 16px;background:rgba(11,14,19,.96);backdrop-filter:blur(8px);border-top:1px solid var(--linha)}
 @media(max-width:768px){.barra-fixa{display:block}}
 @media(min-width:769px){body{padding-bottom:0}}
 
-/* ---------- Animação ---------- */
-.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+/* ---------- Entrada ---------- */
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
 .reveal.on{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){
   .reveal{opacity:1;transform:none;transition:none}
-  .bolha{opacity:1;transform:none;animation:none}
-  .btn-pulse{animation:none}
   html{scroll-behavior:auto}
 }
 </style>
@@ -305,8 +265,6 @@ footer{border-top:1px solid var(--linha);padding:40px 0;font-size:.85rem;color:v
 <!-- =========================================================
      PIXEL / ANALYTICS — cole aqui os códigos de rastreamento
      antes de anunciar (Meta Pixel, Google Analytics, TikTok).
-     Exemplo:
-     <script>!function(f,b,e,v,n,t,s){...}</script>
      ========================================================= -->
 
 </head>
@@ -315,365 +273,264 @@ footer{border-top:1px solid var(--linha);padding:40px 0;font-size:.85rem;color:v
 <!-- ==================== TOPO ==================== -->
 <header>
   <div class="wrap nav">
-    <a href="#" class="logo">
-      <span class="logo-icone">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="#04202f"><path d="M21.9 4.3 18.7 19.4c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.3 13.2 1.4 11.7c-1.1-.3-1.1-1 .2-1.5l19-7.3c.9-.3 1.6.2 1.3 1.4z"/></svg>
-      </span>
-      Bot 24h
-    </a>
+    <a href="#" class="logo"><span class="logo-i"><svg width="16" height="16" viewBox="0 0 24 24" fill="#06121f"><path d="M21.9 4.3 18.7 19.4c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.3 13.2 1.4 11.7c-1.1-.3-1.1-1 .2-1.5l19-7.3c.9-.3 1.6.2 1.3 1.4z"/></svg></span>Bot 24h</a>
     <nav class="nav-links">
-      <a href="#beneficios">Recursos</a>
-      <a href="#como-funciona">Como funciona</a>
+      <a href="#recebe">O que vem junto</a>
+      <a href="#funciona">Como funciona</a>
+      <a href="#painel">O painel</a>
       <a href="#preco">Preço</a>
       <a href="#faq">Dúvidas</a>
     </nav>
-    <a href="#preco" class="btn btn-primario">Quero o acesso</a>
+    <a href="#preco" class="btn btn-p">Ver o preço</a>
   </div>
 </header>
 
-<!-- ==================== HERO ==================== -->
+<!-- ==================== 1. HERO ==================== -->
 <section class="hero">
   <div class="wrap hero-grid">
     <div>
-      <span class="selo">⚡ Funciona 100% dentro do Telegram</span>
-      <h1 style="margin-top:22px">
-        Seu cliente pergunta <span class="marca-texto">às 23h47</span>.<br>
-        O <span class="destaque">Bot 24h</span> responde em 1 segundo.
-      </h1>
-      <p class="lead">
-        Ele atende, tira as dúvidas de sempre, manda seu catálogo, envia o link de pagamento e
-        guarda o contato de cada pessoa que chamou — enquanto você dorme, atende outro cliente
-        ou simplesmente vive a sua vida. Instala em 5 minutos, sem programar nada.
-      </p>
+      <span class="chip"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Pix e cartão no seu domínio</span>
+      <h1 data-empresa="heroTitulo">O bot que vende no Telegram — com painel e checkout próprios.</h1>
+      <p data-empresa="heroLead" class="lead">Você não recebe um bot solto. Recebe o sistema inteiro: o bot que atende e fecha a venda no chat, o painel que mostra cada pedido em tempo real e o checkout com Pix e cartão rodando no seu domínio.</p>
       <div class="hero-ctas">
-        <a href="#preco" class="btn btn-primario btn-pulse">Quero meu bot agora →</a>
-        <a href="#como-funciona" class="btn btn-secundario">Ver como funciona</a>
+        <a href="#preco" class="btn btn-p">Ver o que vem junto</a>
+        <a href="#painel" class="btn btn-s">Ver o painel</a>
       </div>
-      <div class="hero-bullets">
-        <span>✅ Pagamento único, sem mensalidade</span>
-        <span>✅ Acesso vitalício</span>
-        <span>✅ 7 dias de garantia</span>
-      </div>
+      <p class="hero-nota"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span data-empresa="heroNota">É o mesmo sistema que processa o pedido desta página.</span></p>
     </div>
 
-    <!-- Demonstração do bot em ação -->
-    <div class="fone">
-      <div class="fone-topo">
-        <div class="fone-avatar">🤖</div>
+    <!-- Demonstração do bot em conversa.
+         Enquanto o GIF real da tela não existe, fica esta reprodução da
+         interface. Quando gravar, troque o bloco .demo inteiro por:
+         <img src="demo-bot.gif" width="520" height="620"
+              alt="Conversa real: o bot atende, apresenta o plano e envia o Pix">
+         Grave em 520px de largura para não precisar mexer no CSS. -->
+    <div class="demo reveal">
+      <div class="demo-topo">
+        <div class="demo-av"><svg width="15" height="15" viewBox="0 0 24 24" fill="#06121f"><path d="M21.9 4.3 18.7 19.4c-.2 1.1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.3 13.2 1.4 11.7c-1.1-.3-1.1-1 .2-1.5l19-7.3c.9-.3 1.6.2 1.3 1.4z"/></svg></div>
         <div>
-          <div class="fone-nome">Bot 24h</div>
-          <div class="fone-status">online</div>
+          <div class="demo-nome">Bot 24h</div>
+          <div class="demo-sub">bot</div>
         </div>
+        <div class="demo-tag">demonstração</div>
       </div>
       <div class="chat">
-        <div class="hora">Hoje, 23:47</div>
-        <div class="bolha eu" style="animation-delay:.2s">Boa noite, ainda tem vaga pra turma de setembro?</div>
-        <div class="bolha bot" style="animation-delay:1s">
-          Boa noite! 😊 Sim, ainda temos <b>4 vagas</b> para setembro.<br><br>Posso te mandar os valores?
-          <div class="botoes-bot"><span>Ver valores</span><span>Falar com humano</span></div>
+        <div class="msg cli">Boa noite, ainda dá pra entrar na turma de setembro?</div>
+        <div class="msg bot">Boa noite! Ainda temos <b>4 vagas</b> para setembro.
+          <div class="teclado"><span>Ver valores</span><span>Falar com uma pessoa</span></div>
         </div>
-        <div class="bolha eu" style="animation-delay:2s">Ver valores</div>
-        <div class="bolha bot" style="animation-delay:2.9s">
-          <b>Plano completo</b> — 12x de R$ 89<br>
-          <b>À vista no Pix</b> — R$ 890 (10% off)<br><br>
-          Quer garantir a sua vaga agora? 👇
-          <div class="botoes-bot"><span>💳 Pagar com Pix</span></div>
+        <div class="msg cli">Ver valores</div>
+        <div class="msg bot"><b>Plano completo</b> — 12x de R$ 89<br><b>À vista no Pix</b> — R$ 890
+          <div class="teclado"><span>Pagar com Pix</span><span>Pagar no cartão</span></div>
         </div>
-        <div class="bolha eu" style="animation-delay:3.9s">Quero 🔥</div>
-        <div class="bolha bot" style="animation-delay:4.7s">Perfeito! Te enviei o Pix. Assim que cair, sua vaga já entra na lista ✅</div>
+        <div class="msg cli">Pagar com Pix</div>
+        <div class="msg bot">Pronto. O código está acima e some em 30 minutos. Assim que cair, o acesso vai para o seu e-mail.</div>
+      </div>
+      <div class="demo-pe">Reprodução da interface do Telegram · o pedido aparece no painel no mesmo instante</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 2. O QUE O CLIENTE RECEBE ==================== -->
+<section id="recebe" class="faixa">
+  <div class="wrap">
+    <div class="cabeca reveal">
+      <div class="rotulo">O que vem junto</div>
+      <h2>Três coisas, entregues no ato.</h2>
+      <p>Não é uma assinatura de acesso a uma plataforma nossa. É o sistema, na sua conta.</p>
+    </div>
+    <div class="entrega">
+      <div class="item reveal">
+        <div class="item-n">01</div>
+        <div>
+          <h3 data-empresa="entregaveis.0.titulo">O template completo</h3>
+          <p data-empresa="entregaveis.0.detalhe">Bot do Telegram, painel de controle e checkout com Pix e cartão. Três partes que já vêm conversando entre si — não é um kit de peças para você montar.</p>
+        </div>
+        <div data-empresa="entregaveis.0.meta" class="item-meta">código-fonte</div>
+      </div>
+      <div class="item reveal">
+        <div class="item-n">02</div>
+        <div>
+          <h3 data-empresa="entregaveis.1.titulo">Vídeo de instalação</h3>
+          <p data-empresa="entregaveis.1.detalhe">A gravação inteira de uma implantação real, do repositório vazio até a primeira venda entrando no painel. Sem corte nas partes chatas.</p>
+        </div>
+        <div data-empresa="entregaveis.1.meta" class="item-meta">passo a passo</div>
+      </div>
+      <div class="item reveal">
+        <div class="item-n">03</div>
+        <div>
+          <h3 data-empresa="entregaveis.2.titulo">30 respostas prontas</h3>
+          <p data-empresa="entregaveis.2.detalhe">As perguntas que aparecem antes de toda venda, já escritas e ligadas aos botões do bot. Você edita cada uma pelo painel, sem tocar em arquivo.</p>
+        </div>
+        <div data-empresa="entregaveis.2.meta" class="item-meta">editáveis no painel</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ==================== NÚMEROS ==================== -->
-<div class="faixa">
-  <div class="wrap numeros reveal">
-    <div><strong>1 seg</strong><span>para responder</span></div>
-    <div><strong>24/7</strong><span>sem folga e sem férias</span></div>
-    <div><strong>5 min</strong><span>para instalar</span></div>
-    <div><strong>R$ 0</strong><span>de mensalidade</span></div>
-  </div>
-</div>
-
-<!-- ==================== PROBLEMA ==================== -->
-<section>
+<!-- ==================== 3. COMO FUNCIONA ==================== -->
+<section id="funciona">
   <div class="wrap">
-    <div class="cabecalho reveal">
-      <h2>Toda mensagem sem resposta é dinheiro indo embora</h2>
-      <p>E quase sempre não é falta de vontade — é falta de tempo.</p>
-    </div>
-    <div class="grid g3">
-      <div class="card card-dor reveal"><div class="icone">😮‍💨</div>
-        <h3>Você digita a mesma coisa o dia inteiro</h3>
-        <p>"Qual o valor?", "Como funciona?", "Tem garantia?". São as mesmas cinco perguntas, todo santo dia,
-        consumindo horas que deveriam ser suas.</p>
-      </div>
-      <div class="card card-dor reveal"><div class="icone">🌙</div>
-        <h3>Quem chega de madrugada some</h3>
-        <p>Mais da metade das mensagens chega fora do horário comercial. Quem não recebe resposta na hora
-        raramente volta no dia seguinte — vai pra quem responder primeiro.</p>
-      </div>
-      <div class="card card-dor reveal"><div class="icone">🧾</div>
-        <h3>Os contatos se perdem no meio do chat</h3>
-        <p>Quem perguntou o preço mês passado? Quem pediu pra avisar quando abrisse turma?
-        Sem lista organizada, você recomeça a venda do zero toda vez.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== ANTES x DEPOIS ==================== -->
-<section style="background:var(--bg-2);border-block:1px solid var(--linha)">
-  <div class="wrap">
-    <div class="cabecalho reveal">
-      <h2>A diferença de ter um bot trabalhando</h2>
-      <p>A mesma quantidade de mensagens. Resultados completamente diferentes.</p>
-    </div>
-    <div class="comparativo reveal">
-      <div class="coluna">
-        <h3>😵 Sem o Bot 24h</h3>
-        <ul>
-          <li><span class="x">✕</span> Responde quando consegue — às vezes no dia seguinte</li>
-          <li><span class="x">✕</span> Perde venda de quem chamou às 2h da manhã</li>
-          <li><span class="x">✕</span> Copia e cola o mesmo texto 30 vezes por dia</li>
-          <li><span class="x">✕</span> Contatos espalhados, nenhuma lista pra reativar</li>
-          <li><span class="x">✕</span> Fica preso ao celular até nos fins de semana</li>
-          <li><span class="x">✕</span> Não sabe quantas pessoas chamaram nem o que perguntaram</li>
-        </ul>
-      </div>
-      <div class="coluna depois">
-        <h3>🚀 Com o Bot 24h</h3>
-        <ul>
-          <li><span class="v">✓</span> Resposta em 1 segundo, a qualquer hora</li>
-          <li><span class="v">✓</span> Vende de madrugada, no feriado e enquanto você dorme</li>
-          <li><span class="v">✓</span> As respostas prontas saem sozinhas, no botão</li>
-          <li><span class="v">✓</span> Cada contato salvo numa lista que você exporta quando quiser</li>
-          <li><span class="v">✓</span> Você só entra na conversa quando ela vale a pena</li>
-          <li><span class="v">✓</span> Relatório diário do que aconteceu, direto no seu chat</li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== BENEFÍCIOS ==================== -->
-<section id="beneficios">
-  <div class="wrap">
-    <div class="cabecalho reveal">
-      <span class="selo">O que ele faz</span>
-      <h2 style="margin-top:18px">Você configura uma vez.<br>Ele trabalha para sempre.</h2>
-      <p>Seis funções que resolvem 90% do atendimento repetitivo do seu negócio.</p>
-    </div>
-    <div class="grid g3">
-      <div class="card reveal"><div class="icone">⚡</div><h3>Resposta instantânea</h3>
-        <p>Boas-vindas, dúvidas frequentes e valores respondidos na hora, sem fila e sem você precisar estar online.</p></div>
-      <div class="card reveal"><div class="icone">🔘</div><h3>Menu de botões</h3>
-        <p>Em vez de digitar, o cliente clica: "ver preços", "ver catálogo", "falar com atendente". Menos ruído, mais venda.</p></div>
-      <div class="card reveal"><div class="icone">💳</div><h3>Link de pagamento automático</h3>
-        <p>O bot envia seu Pix, boleto ou link de checkout no momento certo — bem quando a pessoa está decidida a comprar.</p></div>
-      <div class="card reveal"><div class="icone">📇</div><h3>Lista de contatos organizada</h3>
-        <p>Todo mundo que falou com o bot fica salvo com nome, usuário e data. Exporte em planilha e reative quando quiser.</p></div>
-      <div class="card reveal"><div class="icone">📣</div><h3>Disparo em massa</h3>
-        <p>Mande um aviso, uma promoção ou um lembrete para todos os contatos de uma vez, na hora que você escolher.</p></div>
-      <div class="card reveal"><div class="icone">📊</div><h3>Relatório no seu chat</h3>
-        <p>Quantas pessoas chamaram, o que mais perguntaram e quantos clicaram no pagamento — resumo diário automático.</p></div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== COMO FUNCIONA ==================== -->
-<section id="como-funciona" style="background:var(--bg-2);border-block:1px solid var(--linha)">
-  <div class="wrap">
-    <div class="cabecalho reveal">
-      <h2>No ar em 5 minutos, em 3 passos</h2>
-      <p>Sem instalar programa, sem contratar servidor e sem escrever uma linha de código.</p>
+    <div class="cabeca reveal">
+      <div class="rotulo">Configuração</div>
+      <h2>Quatro etapas, uma vez só.</h2>
+      <p>O caminho real, sem pular a parte chata: o que você faz, na ordem em que faz.</p>
     </div>
     <div class="passos">
-      <div class="passo reveal"><h3>Faça o pagamento</h3>
-        <p>Compra segura por Pix, cartão ou boleto. O acesso chega no seu e-mail em até 2 minutos após a confirmação.</p></div>
-      <div class="passo reveal"><h3>Conecte seu bot</h3>
-        <p>Você cria o bot no próprio Telegram (é gratuito), copia o código que ele te dá e cola no painel. O vídeo mostra cada clique.</p></div>
-      <div class="passo reveal"><h3>Escreva suas respostas</h3>
-        <p>Preencha o que ele deve falar — ou use os modelos prontos que já vêm com você. A partir daí, ele assume o atendimento.</p></div>
-    </div>
-    <div style="text-align:center;margin-top:44px" class="reveal">
-      <a href="#preco" class="btn btn-primario">Começar agora →</a>
+      <div class="passo reveal">
+        <h3 data-empresa="passos.0.titulo">Implantar</h3>
+        <p data-empresa="passos.0.detalhe">Você duplica o projeto e sobe na Vercel. Não há servidor para configurar nem banco para criar: o plano gratuito dá conta de começar.</p>
+      </div>
+      <div class="passo reveal">
+        <h3 data-empresa="passos.1.titulo">Conectar as contas</h3>
+        <p data-empresa="passos.1.detalhe">Três chaves, coladas uma vez: o token do bot no Telegram, a credencial do seu gateway de pagamento e o endereço do seu site.</p>
+      </div>
+      <div class="passo reveal">
+        <h3 data-empresa="passos.2.titulo">Editar os dados</h3>
+        <p data-empresa="passos.2.detalhe">Nome, preço, textos do bot e respostas prontas — tudo pelo painel, em campos de texto. O que você salva vale na hora, sem publicar de novo.</p>
+      </div>
+      <div class="passo reveal">
+        <h3 data-empresa="passos.3.titulo">No ar</h3>
+        <p data-empresa="passos.3.detalhe">O bot passa a responder, o checkout passa a cobrar e cada pedido aparece no painel com status, valor e origem.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ==================== O QUE VOCÊ RECEBE ==================== -->
-<section>
+<!-- ==================== 4. PROVA VISUAL ==================== -->
+<section id="painel" class="faixa">
   <div class="wrap">
-    <div class="cabecalho reveal">
-      <h2>O que você recebe hoje</h2>
-      <p>Tudo liberado no ato, sem custo extra depois.</p>
+    <div class="cabeca reveal">
+      <div class="rotulo">O painel</div>
+      <h2>Cada pedido, com status, valor e origem.</h2>
+      <p>O mesmo painel que controla o bot, os textos e as respostas prontas.</p>
     </div>
-    <ul class="inclui reveal">
-      <li><span class="check">✓</span><div><b>O Bot 24h completo</b> — com as seis funções acima, pronto para conectar ao seu Telegram.</div></li>
-      <li><span class="check">✓</span><div><b>Vídeo de instalação passo a passo</b> — 12 minutos, do zero até o bot respondendo.</div></li>
-      <li><span class="check">✓</span><div><b>Painel simples de configuração</b> — troque textos, botões e horários sem mexer em código.</div></li>
-      <li><span class="check">✓</span><div><b>Atualizações vitalícias</b> — pagou uma vez, recebe todas as melhorias futuras.</div></li>
-      <li><span class="check">✓</span><div><b>Suporte no Telegram</b> — resposta em até 24h em dias úteis, com uma pessoa de verdade.</div></li>
-      <li><span class="check">✓</span><div><b>Bônus: 30 respostas prontas</b> — os textos que mais convertem, é só adaptar ao seu negócio.</div></li>
-    </ul>
+    <div class="janela reveal">
+      <div class="janela-topo">
+        <span class="pt"></span><span class="pt"></span><span class="pt"></span>
+        <span class="janela-url">/painel</span>
+      </div>
+      <!-- Prova visual do painel.
+           Quando tiver os prints finais, troque o bloco .slot por:
+           <img src="print-painel.png" width="1040" height="620"
+                alt="Painel do Bot 24h: vendas do dia, lista de pedidos e status do bot">
+           Capture em 1040px de largura, tema escuro, com dados de teste —
+           nunca com nome ou e-mail de cliente real na tela. -->
+      <div class="slot">
+        <div>
+          <div class="rotulo">Espaço reservado</div>
+          <p>O print do painel entra aqui. Capture com dados de teste, sem nome nem e-mail de cliente real.</p>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- ==================== DEPOIMENTOS ====================
-     ⚠️ IMPORTANTE: os três depoimentos abaixo são EXEMPLOS de formato.
-     Substitua pelos depoimentos reais dos seus clientes antes de publicar.
-     Print de conversa do Telegram converte ainda mais que texto digitado.
-     Depoimento inventado é propaganda enganosa (CDC, art. 37) e dá multa.
+<!-- ==================== 7. DEPOIMENTOS ====================
+     ⚠️ Os três depoimentos vêm de conteudo/empresa.js e ainda são EXEMPLOS
+     de formato. Substitua pelos reais antes de publicar: depoimento
+     inventado é propaganda enganosa (CDC, art. 37) e dá multa.
 ================================================================= -->
-<section style="background:var(--bg-2);border-block:1px solid var(--linha)">
-  <div class="wrap">
-    <div class="cabecalho reveal">
-      <h2>Quem colocou pra rodar, não volta atrás</h2>
-      <p>Resultados de quem parou de responder mensagem na madrugada.</p>
-    </div>
-    <div class="grid g3">
-      <div class="depo reveal">
-        <div class="estrelas">★★★★★</div>
-        <p>“<span data-depoimento="0.texto">Eu perdia umas duas horas por dia respondendo a mesma coisa. Hoje o bot resolve tudo e só me chama
-        quando a pessoa realmente quer fechar. Recuperei minha manhã inteira.</span>”</p>
-        <div class="autor"><div class="foto" data-depoimento="0.iniciais">MR</div><div><b data-depoimento="0.autor">Marina R.</b><small data-depoimento="0.contexto">Loja de semijoias · Curitiba</small></div></div>
-      </div>
-      <div class="depo reveal">
-        <div class="estrelas">★★★★★</div>
-        <p>“<span data-depoimento="1.texto">Confesso que achei que não ia funcionar pro meu caso. Na primeira semana fechei três vendas
-        que entraram depois das 22h — horário que eu simplesmente não atendia antes.</span>”</p>
-        <div class="autor"><div class="foto" data-depoimento="1.iniciais">JS</div><div><b data-depoimento="1.autor">Jonas S.</b><small data-depoimento="1.contexto">Mentoria de vendas · Belo Horizonte</small></div></div>
-      </div>
-      <div class="depo reveal">
-        <div class="estrelas">★★★★★</div>
-        <p>“<span data-depoimento="2.texto">Não entendo nada de tecnologia e instalei sozinha assistindo o vídeo. Levei uns 15 minutos
-        porque parei pra tomar café no meio.</span>”</p>
-        <div class="autor"><div class="foto" data-depoimento="2.iniciais">AC</div><div><b data-depoimento="2.autor">Ana C.</b><small data-depoimento="2.contexto">Estúdio de pilates · Recife</small></div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== PREÇO ==================== -->
-<section id="preco">
-  <div class="wrap">
-    <div class="cabecalho reveal">
-      <h2>Um pagamento. Acesso para sempre.</h2>
-      <p>Sem mensalidade, sem taxa por mensagem, sem renovação surpresa no cartão.</p>
-    </div>
-
-    <div class="caixa-preco reveal">
-      <span class="fita">Oferta de lançamento</span>
-      <div class="de">De R$ 497</div>
-      <div class="valor"><span class="cifrao">R$</span><span class="num">197</span></div>
-      <div class="parcela">à vista no Pix ou em até <b style="color:var(--txt)">12x de R$ 19,90</b> no cartão</div>
-
-      <ul class="inclui">
-        <li><span class="check">✓</span><div>Bot 24h completo + vídeo de instalação</div></li>
-        <li><span class="check">✓</span><div>Painel de configuração sem código</div></li>
-        <li><span class="check">✓</span><div>Atualizações vitalícias, sem custo</div></li>
-        <li><span class="check">✓</span><div>Suporte humano no Telegram</div></li>
-        <li><span class="check">✓</span><div>Bônus: 30 respostas prontas</div></li>
-      </ul>
-
-      <a href="#" class="btn btn-primario btn-grande btn-pulse" data-checkout>Garantir meu acesso vitalício</a>
-      <p class="subtexto">🔒 Compra segura · Acesso liberado em até 2 minutos</p>
-
-      <div class="pagamentos"><span>Pix</span><span>Cartão</span><span>Boleto</span></div>
-    </div>
-
-    <div class="garantia reveal">
-      <div class="selo-garantia">7<br>DIAS</div>
-      <div>
-        <h3 style="margin-bottom:8px">O risco é todo meu</h3>
-        <p>Instale, teste com seus clientes de verdade e veja o resultado. Se em 7 dias você achar que não
-        valeu o que pagou, me manda uma mensagem no Telegram e eu devolvo os R$ 197 integralmente —
-        sem formulário, sem pergunta e sem cara feia.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ==================== SOBRE ==================== -->
 <section>
-  <div class="wrap sobre reveal">
-    <div class="foto-grande">👋</div>
-    <div>
-      <h2 style="font-size:1.5rem;margin-bottom:14px">Quem está por trás disso</h2>
-      <p>Eu criei o Bot 24h porque vivi exatamente o problema que ele resolve: passava o dia respondendo
-      as mesmas perguntas e mesmo assim perdia venda por demora. Testei ferramenta cara, mensalidade em dólar
-      e sistema complicado demais até montar algo simples o bastante para qualquer pessoa instalar sozinha.</p>
-      <p style="margin-top:14px">Hoje meu compromisso é esse: você paga uma vez, tem o bot para sempre e fala
-      com uma pessoa de verdade quando precisar de ajuda. Qualquer dúvida antes de comprar,
-      <a data-empresa-href="telegramUrl" href="https://t.me/seuusuario" target="_blank" rel="noopener" style="color:var(--azul);font-weight:600">me chama no Telegram</a>.</p>
+  <div class="wrap">
+    <div class="cabeca reveal">
+      <div class="rotulo">Quem já usa</div>
+      <h2>O que dizem sobre o sistema rodando.</h2>
+    </div>
+    <div class="depos">
+      <div class="depo reveal">
+        <p>“<span data-depoimento="0.texto">Eu perdia umas duas horas por dia respondendo a mesma coisa. Hoje o bot resolve tudo e só me chama quando a pessoa realmente quer fechar. Recuperei minha manhã inteira.</span>”</p>
+        <div class="depo-pe">
+          <b data-depoimento="0.autor">Marina R.</b>
+          <small data-depoimento="0.contexto">Loja de semijoias · Curitiba</small>
+        </div>
+      </div>
+      <div class="depo reveal">
+        <p>“<span data-depoimento="1.texto">Confesso que achei que não ia funcionar pro meu caso. Na primeira semana fechei três vendas que entraram depois das 22h — horário que eu simplesmente não atendia antes.</span>”</p>
+        <div class="depo-pe">
+          <b data-depoimento="1.autor">Jonas S.</b>
+          <small data-depoimento="1.contexto">Mentoria de vendas · Belo Horizonte</small>
+        </div>
+      </div>
+      <div class="depo reveal">
+        <p>“<span data-depoimento="2.texto">Não entendo nada de tecnologia e instalei sozinha assistindo o vídeo. Levei uns 15 minutos porque parei pra tomar café no meio.</span>”</p>
+        <div class="depo-pe">
+          <b data-depoimento="2.autor">Ana C.</b>
+          <small data-depoimento="2.contexto">Estúdio de pilates · Recife</small>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ==================== FAQ ==================== -->
-<section id="faq" style="background:var(--bg-2);border-block:1px solid var(--linha)">
+<!-- ==================== 5. PREÇO E GARANTIA ==================== -->
+<section id="preco" class="faixa">
   <div class="wrap">
-    <div class="cabecalho reveal">
-      <h2>Perguntas frequentes</h2>
-      <p>Se a sua dúvida não estiver aqui, é só me chamar no Telegram antes de comprar.</p>
+    <div class="cabeca reveal">
+      <div class="rotulo">Preço</div>
+      <h2>Um pagamento. O sistema é seu.</h2>
+      <p data-empresa="precoNota">Pagamento único. Sem mensalidade, sem taxa por mensagem, sem renovação automática.</p>
+    </div>
+
+    <div class="compra">
+      <div class="pedido reveal">
+        <div class="pedido-topo">Resumo do pedido</div>
+      <div class="linha-i"><span data-empresa="entregaveis.0.titulo">O template completo</span><span>incluído</span></div>
+      <div class="linha-i"><span data-empresa="entregaveis.1.titulo">Vídeo de instalação</span><span>incluído</span></div>
+      <div class="linha-i"><span data-empresa="entregaveis.2.titulo">30 respostas prontas</span><span>incluído</span></div>
+        <div class="linha-i"><span>Atualizações do template</span><span>incluídas</span></div>
+        <div class="linha-i"><span>Mensalidade</span><span>R$ 0</span></div>
+        <div class="linha-i total"><span>Total hoje</span><span data-empresa="preco">R$ 197</span></div>
+        <div class="pedido-pe">
+          <a href="#" class="btn btn-p btn-bloco" data-checkout>Comprar o template</a>
+          <p class="sub">ou <span data-empresa="precoParcelado">12x de R$ 19,90</span> no cartão</p>
+        </div>
+        <div class="meios"><span>Pix</span><span>Cartão de crédito</span></div>
+      </div>
+
+      <div class="garantia reveal">
+        <div class="selo"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <h3 data-empresa="garantiaTitulo">7 dias para desistir</h3>
+        <p data-empresa="garantiaTexto">Você tem 7 (sete) dias corridos, contados da confirmação do pagamento, para pedir o reembolso integral, sem precisar justificar — conforme o direito de arrependimento do art. 49 do Código de Defesa do Consumidor. Basta enviar o pedido para o nosso suporte. O estorno é feito pelo mesmo meio de pagamento, no prazo da operadora ou do banco.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 6. FAQ ==================== -->
+<section id="faq">
+  <div class="wrap">
+    <div class="cabeca reveal">
+      <div class="rotulo">Dúvidas</div>
+      <h2>O que perguntam antes de comprar.</h2>
+      <p>Se a sua não estiver aqui, chame no Telegram antes de comprar — respondo eu.</p>
     </div>
     <div class="faq reveal">
       <details open>
-        <summary>Preciso saber programar?</summary>
-        <p>Não. Toda a configuração é feita preenchendo campos de texto, e o vídeo mostra cada clique do começo ao fim.
-        Se você sabe usar o Telegram e preencher um formulário, você consegue instalar.</p>
+        <summary data-empresa="faq.0.pergunta">Preciso saber programar?</summary>
+        <p data-empresa="faq.0.resposta">Não. A implantação é feita por botões na Vercel e a configuração é preenchimento de campo no painel. O vídeo mostra cada clique. O que você precisa saber é o que quer que o bot responda.</p>
       </details>
       <details>
-        <summary>Funciona no celular ou só no computador?</summary>
-        <p>Nos dois. O bot roda dentro do Telegram, então você acompanha as conversas e recebe os relatórios
-        pelo celular, tablet ou computador — onde você estiver.</p>
+        <summary data-empresa="faq.1.pergunta">Preciso ter minha própria conta de gateway?</summary>
+        <p data-empresa="faq.1.resposta">Sim, e isso é de propósito: o dinheiro cai direto na sua conta, sem passar por nós. Você cria a conta no gateway, cola as duas chaves no painel e o checkout começa a cobrar em seu nome.</p>
       </details>
       <details>
-        <summary>Tem mensalidade mesmo? Qual é a pegadinha?</summary>
-        <p>Não tem pegadinha: você paga R$ 197 uma vez e o acesso é vitalício, incluindo atualizações.
-        O Telegram não cobra nada para criar bots. O único custo eventual seria se você quiser hospedar o bot
-        num servidor próprio mais robusto — e mesmo assim há opção gratuita, explicada no vídeo.</p>
+        <summary data-empresa="faq.2.pergunta">Quanto custa manter no ar?</summary>
+        <p data-empresa="faq.2.resposta">O plano gratuito da Vercel atende o começo, e criar bot no Telegram não tem custo. O gateway cobra a taxa dele por venda aprovada. De nossa parte não há mensalidade.</p>
       </details>
       <details>
-        <summary>Em quanto tempo recebo o acesso?</summary>
-        <p>Pix e cartão são aprovados em minutos e o acesso chega automaticamente no seu e-mail
-        (confira também a caixa de spam). Boleto leva até 2 dias úteis para compensar.</p>
+        <summary data-empresa="faq.3.pergunta">O código é meu?</summary>
+        <p data-empresa="faq.3.resposta">O projeto roda na sua conta, com suas chaves, e você pode editar o que quiser. A licença cobre a operação de um bot, para o seu próprio negócio — revender ou redistribuir o template não está incluído.</p>
       </details>
       <details>
-        <summary>Serve pro meu tipo de negócio?</summary>
-        <p>Serve para qualquer negócio que receba perguntas repetidas antes da venda: loja, curso, mentoria,
-        clínica, estúdio, prestador de serviço, infoproduto. Se você responde as mesmas coisas todo dia,
-        o bot resolve. Na dúvida, me chame no Telegram e eu digo com sinceridade se vale para o seu caso.</p>
+        <summary data-empresa="faq.4.pergunta">Funciona com Pix e cartão?</summary>
+        <p data-empresa="faq.4.resposta">O checkout já vem com os dois. Pix depende só de ativar no seu gateway; cartão depende de o gateway ter uma adquirente de crédito habilitada na sua conta — isso é liberado por eles, não por nós.</p>
       </details>
       <details>
-        <summary>Posso usar em mais de um canal ou grupo?</summary>
-        <p>Sim. A licença é sua e cobre um bot, que pode atender seu canal, seus grupos e as conversas privadas
-        ao mesmo tempo. Se você quiser rodar bots separados para negócios diferentes, me chame que combinamos.</p>
-      </details>
-      <details>
-        <summary>Meus dados e meus contatos ficam seguros?</summary>
-        <p>O bot roda na sua própria conta do Telegram e a lista de contatos é sua — você exporta quando quiser
-        e ninguém mais tem acesso a ela. Nós não vendemos, alugamos nem compartilhamos dados de clientes.</p>
-      </details>
-      <details>
-        <summary>E se eu não gostar?</summary>
-        <p>Você tem 7 dias de garantia total. Pediu reembolso dentro do prazo, devolvo os R$ 197 integralmente,
-        sem burocracia. O risco é meu, não seu.</p>
+        <summary data-empresa="faq.5.pergunta">Em quanto tempo fica no ar?</summary>
+        <p data-empresa="faq.5.resposta">A implantação leva minutos. O que costuma demorar é do lado das contas: a aprovação do seu cadastro no gateway pode levar de horas a alguns dias, e isso não depende do template.</p>
       </details>
     </div>
-  </div>
-</section>
-
-<!-- ==================== CTA FINAL ==================== -->
-<section class="final">
-  <div class="wrap reveal">
-    <h2>Enquanto você lê isso, tem alguém esperando resposta</h2>
-    <p>Coloque o Bot 24h para trabalhar hoje e nunca mais perca uma venda por demora.
-    Pagamento único, acesso para sempre e 7 dias de garantia.</p>
-    <a href="#" class="btn btn-primario btn-grande btn-pulse" data-checkout>Quero meu bot por R$ 197</a>
-    <p class="subtexto">Pagamento único · Garantia de 7 dias · Acesso imediato</p>
   </div>
 </section>
 
@@ -689,41 +546,36 @@ footer{border-top:1px solid var(--linha);padding:40px 0;font-size:.85rem;color:v
       </div>
     </div>
     <p class="aviso">
-      Este site não é afiliado ao Telegram, à Meta/Facebook ou ao Google. Todas as marcas citadas pertencem
-      aos seus respectivos donos. O Bot 24h é uma ferramenta de automação de atendimento: os resultados
-      dependem do seu produto, do seu público e do seu esforço, variam de pessoa para pessoa e não constituem
-      promessa de ganho.
+      Este site não é afiliado ao Telegram, à Meta/Facebook, à Vercel ou ao Google. Todas as marcas citadas
+      pertencem aos seus respectivos donos. O Bot 24h é uma ferramenta de automação de atendimento e venda:
+      os resultados dependem do seu produto, do seu público e do seu esforço, variam de pessoa para pessoa
+      e não constituem promessa de ganho.
     </p>
   </div>
 </footer>
 
-<!-- ==================== BARRA FIXA (MOBILE) ==================== -->
 <div class="barra-fixa">
-  <a href="#preco" class="btn btn-primario">Garantir por R$ 197 →</a>
+  <a href="#preco" class="btn btn-p btn-bloco">Ver o preço</a>
 </div>
 
 <script>
 document.getElementById('ano').textContent = new Date().getFullYear();
 
-/* Animação de entrada dos blocos */
 var alvos = document.querySelectorAll('.reveal');
 if ('IntersectionObserver' in window) {
   var obs = new IntersectionObserver(function(entradas){
     entradas.forEach(function(e){
       if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); }
     });
-  }, { threshold: .12, rootMargin: '0px 0px -40px 0px' });
+  }, { threshold: .1, rootMargin: '0px 0px -40px 0px' });
   alvos.forEach(function(el){ obs.observe(el); });
 } else {
   alvos.forEach(function(el){ el.classList.add('on'); });
 }
 
 /* =========================================================
-   Destino dos botões de compra.
-   Hoje aponta para o checkout próprio deste mesmo projeto
-   (checkout.html + funções em /api). Se um dia você voltar a
-   usar plataforma externa (Kiwify, Hotmart...), basta trocar
-   esta URL.
+   Destino dos botões de compra. Aponta para o checkout deste
+   mesmo projeto (checkout.html + funções em /api).
    ========================================================= */
 var LINK_CHECKOUT = '/checkout.html';
 
@@ -733,8 +585,6 @@ if (LINK_CHECKOUT) {
     a.removeAttribute('data-checkout');
   });
 } else {
-  /* Sem link configurado, os botões levam para a seção de preço
-     em vez de recarregar a página. */
   document.querySelectorAll('[data-checkout]').forEach(function(a){ a.href = '#preco'; });
   console.warn('Bot 24h: defina LINK_CHECKOUT no final do index.html antes de publicar.');
 }

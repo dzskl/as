@@ -10,11 +10,15 @@
      data-empresa="campo"          → troca o texto do elemento
      data-empresa-href="campo"     → troca o href
      data-empresa-content="campo"  → troca o content (usado nas meta tags)
+
+   O campo aceita caminho com ponto, porque o conteúdo do produto é lista:
+   data-empresa="passos.1.titulo" chega em PRODUTO.passos[1].titulo. Índice
+   de array funciona porque em JavaScript arr['1'] é arr[1].
    ========================================================================= */
 
-import { EMPRESA, DERIVADOS } from './empresa.js';
+import { EMPRESA, DERIVADOS, PRODUTO } from './empresa.js';
 
-const TUDO = { ...EMPRESA, ...DERIVADOS };
+const TUDO = { ...EMPRESA, ...PRODUTO, ...DERIVADOS };
 
 function valor(caminho) {
   return caminho.split('.').reduce((o, chave) => (o == null ? o : o[chave]), TUDO);

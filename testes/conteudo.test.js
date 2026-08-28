@@ -15,7 +15,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 const PAGINAS = ['index.html', 'obrigado.html', 'termos.html', 'privacidade.html'];
 const ler = (arquivo) => readFileSync(new URL('../' + arquivo, import.meta.url), 'utf8');
 
-const { EMPRESA, DERIVADOS, VALORES_DE_EXEMPLO, pendencias } = await import('../conteudo/empresa.js');
+const { EMPRESA, DERIVADOS, PRODUTO, VALORES_DE_EXEMPLO, pendencias } = await import('../conteudo/empresa.js');
 
 let passou = 0, falhou = 0, pulados = 0;
 async function teste(nome, fn) {
@@ -49,17 +49,32 @@ await teste('as quatro páginas carregam o preenchedor', () => {
   }
 });
 
+/* Normaliza como o navegador faz ao renderizar: quebra de linha e recuo do
+   código-fonte viram um espaço só. Um depoimento escrito em três linhas no
+   HTML e em uma linha na fonte é o MESMO texto para quem visita — comparar
+   byte a byte acusaria formatação, não divergência de conteúdo. */
+const normalizar = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
+
+/* Mesma união que conteudo/aplicar.js monta para preencher a página. Se as
+   duas se separarem, o teste passa a medir algo que o site não usa. */
+const TUDO = { ...EMPRESA, ...PRODUTO, ...DERIVADOS };
+
+/* Caminho com ponto, igual ao resolvedor de aplicar.js: "cnpj",
+   "passos.1.titulo", "faq.0.resposta". data-depoimento usa a forma curta
+   ("0.autor") e por isso resolve a partir da lista de depoimentos. */
+const raizDe = (marcador) => (marcador === 'data-depoimento' ? EMPRESA.depoimentos : TUDO);
+const fonteDe = (ref, raiz) =>
+  ref.split('.').reduce((o, chave) => (o == null ? o : o[chave]), raiz);
+
 await teste('toda marcação aponta para um campo que existe', () => {
-  const disponiveis = { ...EMPRESA, ...DERIVADOS };
   const invalidas = [];
   for (const pagina of PAGINAS) {
     const html = ler(pagina);
-    for (const [, campo] of html.matchAll(/data-empresa(?:-href|-content)?="([^"]+)"/g)) {
-      if (disponiveis[campo] === undefined) invalidas.push(`${pagina}: campo "${campo}" não existe`);
+    for (const [, ref] of html.matchAll(/data-empresa(?:-href|-content)?="([^"]+)"/g)) {
+      if (fonteDe(ref, TUDO) === undefined) invalidas.push(`${pagina}: campo "${ref}" não existe`);
     }
     for (const [, ref] of html.matchAll(/data-depoimento="([^"]+)"/g)) {
-      const [i, campo] = ref.split('.');
-      if (EMPRESA.depoimentos[Number(i)]?.[campo] === undefined) {
+      if (fonteDe(ref, EMPRESA.depoimentos) === undefined) {
         invalidas.push(`${pagina}: depoimento "${ref}" não existe`);
       }
     }
@@ -67,22 +82,30 @@ await teste('toda marcação aponta para um campo que existe', () => {
   assert.deepEqual(invalidas, [], invalidas.join('\n     '));
 });
 
-/* Normaliza como o navegador faz ao renderizar: quebra de linha e recuo do
-   código-fonte viram um espaço só. Um depoimento escrito em três linhas no
-   HTML e em uma linha na fonte é o MESMO texto para quem visita — comparar
-   byte a byte acusaria formatação, não divergência de conteúdo. */
-const normalizar = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
-
-const TUDO = { ...EMPRESA, ...DERIVADOS };
-
-/* Resolve "cnpj" e também "0.autor" (depoimento por índice). */
-function fonteDe(ref) {
-  if (/^\d+\./.test(ref)) {
-    const [i, campo] = ref.split('.');
-    return EMPRESA.depoimentos[Number(i)]?.[campo];
+await teste('elemento marcado não tem markup dentro', () => {
+  /* aplicar.js preenche com textContent, que APAGA qualquer filho. Um ícone
+     ou um <b> dentro de um elemento marcado some assim que o JavaScript
+     roda — e some em silêncio, porque a comparação de divergência pula
+     texto vazio. Aconteceu de verdade: um ícone de check dentro do
+     data-empresa="heroNota" desaparecia na página renderizada.
+     Ícone e ênfase ficam FORA do elemento marcado. */
+  const comFilho = [];
+  for (const pagina of PAGINAS) {
+    const html = ler(pagina);
+    const re = /<(\w+)[^>]*\sdata-(?:empresa|depoimento)="([^"]+)"[^>]*>/g;
+    for (const m of html.matchAll(re)) {
+      const [tagAberta, tag, ref] = m;
+      if (/\/>$/.test(tagAberta)) continue;
+      const inicio = m.index + tagAberta.length;
+      const fim = html.indexOf(`</${tag}>`, inicio);
+      if (fim === -1) continue;
+      if (html.slice(inicio, fim).includes('<')) {
+        comFilho.push(`${pagina}: <${tag} ...="${ref}"> tem markup dentro — o preenchedor vai apagar`);
+      }
+    }
   }
-  return TUDO[ref];
-}
+  assert.deepEqual(comFilho, [], comFilho.join('\n     '));
+});
 
 await teste('o HTML mostra hoje exatamente o que a fonte única diz', () => {
   /* Enquanto os dois coincidem, a página renderiza igual com ou sem
@@ -93,15 +116,15 @@ await teste('o HTML mostra hoje exatamente o que a fonte única diz', () => {
      Cobre os QUATRO marcadores, porque um só não bastaria: os depoimentos
      fictícios vivem em data-depoimento, e og:url/canonical em -content/-href.
 
-     Limitações conhecidas do casamento por regex, verificadas contra o
-     projeto e hoje sem efeito (29 elementos marcados, nenhum se encaixa):
-       · texto para no primeiro "<" interno — nenhum elemento marcado tem
-         tag aninhada dentro (os depoimentos marcam o <span> interno, não o
-         <p> que carrega as aspas curvas);
-       · texto vazio é pulado — nenhum elemento marcado está vazio.
-     Se algum dia um deles passar a valer, o teste 'toda marcação aponta
-     para um campo que existe' continua cobrindo a ligação, mas esta
-     comparação precisará de um parser de verdade. */
+     Duas limitações do casamento por regex, e por que seguem sem efeito:
+       · o texto para no primeiro "<" interno — o teste acima ('elemento
+         marcado não tem markup dentro') garante que não há tag aninhada,
+         então não há texto a perder. Ele existe porque essa limitação já
+         mordeu: um ícone dentro do marcador sumia na renderização;
+       · texto vazio é pulado — nenhum elemento marcado está vazio, e um
+         que ficasse vazio seria markup puro, pego pelo teste acima.
+     Se um dia for preciso marcar um elemento com filhos, esta comparação
+     precisará de um parser de verdade em vez de regex. */
   const divergentes = [];
 
   /* Mostra o trecho EM VOLTA da primeira diferença, não o começo do texto:
@@ -116,7 +139,7 @@ await teste('o HTML mostra hoje exatamente o que a fonte única diz', () => {
 
   const conferir = (pagina, marcador, ref, achado) => {
     const html = normalizar(achado);
-    const fonte = normalizar(fonteDe(ref));
+    const fonte = normalizar(fonteDe(ref, raizDe(marcador)));
     if (html !== fonte) {
       divergentes.push(
         `${pagina}: ${marcador}="${ref}" → HTML tem "${recorte(html, fonte)}", ` +
