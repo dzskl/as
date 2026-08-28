@@ -6,7 +6,7 @@
 
 <title>Bot 24h — o bot de vendas do Telegram com painel e checkout próprios</title>
 <meta name="description" content="Template completo: o bot que vende no Telegram, o painel que mostra cada pedido e o checkout com Pix e cartão no seu domínio. Você implanta, conecta suas contas e edita os textos. Pagamento único.">
-<meta name="theme-color" content="#0b0e13">
+<meta name="theme-color" content="#17181E">
 <link rel="canonical" data-empresa-href="siteBarra" href="https://seudominio.com.br/">
 
 <!-- Preview ao compartilhar o link (WhatsApp, Telegram, Instagram, Facebook) -->
@@ -21,35 +21,62 @@
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%233b9eff'/%3E%3Cpath d='M20.4 5.6 17.8 17.7c-.2.9-.7 1-1.4.6l-3.9-2.9-1.9 1.8c-.2.2-.4.4-.8.4l.3-4 7.3-6.6c.3-.3-.1-.5-.5-.2l-9 5.7-3.9-1.2c-.9-.3-.9-.9.2-1.3l15.2-5.9c.7-.2 1.3.2 1 1.5z' fill='%2306121f'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%233994ff'/%3E%3Cpath d='M20.4 5.6 17.8 17.7c-.2.9-.7 1-1.4.6l-3.9-2.9-1.9 1.8c-.2.2-.4.4-.8.4l.3-4 7.3-6.6c.3-.3-.1-.5-.5-.2l-9 5.7-3.9-1.2c-.9-.3-.9-.9.2-1.3l15.2-5.9c.7-.2 1.3.2 1 1.5z' fill='%2317181e'/%3E%3C/svg%3E">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 /* =========================================================
-   PALETA — tirada dos prints de referência (painel escuro,
-   superfícies chapadas, borda de 1px visível, um azul só).
+   PALETA — valores medidos com getComputedStyle em
+   https://mee6.xyz/pt, não estimados de print.
+
+   TIPOGRAFIA: o site de referência usa Proxima Nova (Adobe
+   Fonts, licença paga — não podemos usar). Testei Mulish e
+   Work Sans nos dois tamanhos de título (48px e 35px, 700).
+   Escolhida WORK SANS porque:
+     · no peso 700 tem a espessura de haste que Proxima Nova
+       Bold tem; o 700 do Mulish renderiza como semibold e
+       deixaria o título de 48px sem presença;
+     · 'g' de andar único e terminais de corte reto, como a
+       Proxima Nova — o Mulish também, mas com bojo mais
+       geométrico e frio;
+     · minúscula mais larga (x de 59 contra 55 do Mulish, a
+       100px), mais perto da caixa-baixa alta e aberta da
+       Proxima Nova.
+   O que se perde: a Work Sans é um pouco mais grotesca e
+   menos geométrica que a Proxima Nova. Foi o preço menor a
+   pagar em relação a errar o peso.
+
+   CONTRASTE (calculado, todos passam AA 4.5:1):
+     #F2F4FB       sobre base/cartão/faixa → 16.1 / 14.6 / 13.2
+     branco 70%    sobre base/cartão/faixa →  9.1 /  8.5 /  7.9
+     branco 55%    sobre base/cartão/faixa →  6.1 /  5.8 /  5.5
+     #3994FF       sobre base/cartão/faixa →  5.8 /  5.2 /  4.7
+   Texto do botão azul é escuro, não branco: branco sobre
+   #3994FF dá só 3.06 e reprova; var(--fundo) dá 5.78.
    ========================================================= */
 :root{
-  --fundo:#0b0e13;        /* fundo mais profundo */
-  --fundo-2:#0f131a;      /* faixa alternada */
-  --sup:#151a22;          /* cartão / painel */
-  --sup-2:#1b212b;        /* campo, item elevado */
-  --linha:#232b36;        /* fio de 1px — o traço que define o visual */
-  --linha-2:#2e3743;      /* fio em destaque */
-  --txt:#f2f5f9;
-  --txt-2:#98a2b3;
-  --txt-3:#6b7684;
-  --azul:#3b9eff;         /* ÚNICA cor de destaque */
-  --azul-2:#2b7fd4;
-  --azul-fraco:rgba(59,158,255,.10);
-  --r:10px;               /* raio contido: painel, não bolha */
-  --r-p:8px;
-  --r-s:6px;
+  --fundo:#17181E;        /* fundo mais profundo, o mais frequente */
+  --sup:#1F2129;          /* superfície de navbar e cartão */
+  --faixa:#272934;        /* faixa/corpo mais clara */
+  --linha:rgba(255,255,255,.10);   /* divisor — o traço que define o visual */
+  --linha-2:rgba(255,255,255,.20); /* mesma família, para borda interativa */
+  --txt:#F2F4FB;                   /* título */
+  --txt-2:rgba(255,255,255,.70);   /* corpo */
+  --txt-3:rgba(255,255,255,.55);   /* rótulo e meta */
+  --azul:#3994FF;                  /* acento principal (CTA) */
+  /* Acento secundário RARO: só o selo da garantia. Fundo a 14%,
+     nunca sólido — é como o badge "premium" do site de referência. */
+  --ouro:#FFC34F;
+  --ouro-fundo:rgba(255,195,79,.14);
+  --r:8px;                /* raio único: cartão e botão, sem variar */
+  /* Sombra reservada a quem PAIRA sobre a página (o mockup do
+     hero). Cartão de conteúdo é chapado. */
+  --sombra-flutuante:0 4px 16px rgba(0,0,0,.16);
   --max:1080px;
-  --fonte:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --fonte:'Work Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
@@ -64,12 +91,14 @@ svg{display:block;flex:none}
 
 .wrap{width:100%;max-width:var(--max);margin:0 auto;padding:0 24px}
 section{padding:96px 0}
-.faixa{background:var(--fundo-2);border-block:1px solid var(--linha)}
+.faixa{background:var(--faixa);border-block:1px solid var(--linha)}
 @media(max-width:720px){section{padding:64px 0}}
 
-h1,h2,h3{line-height:1.16;letter-spacing:-.022em;font-weight:800}
-h1{font-size:clamp(2.05rem,4.6vw,3.15rem);letter-spacing:-.032em}
-h2{font-size:clamp(1.55rem,3.1vw,2.15rem)}
+/* H1 48px / H2 35px, ambos 700 — medidos no site de referência.
+   clamp() só reduz em tela estreita; o teto é o valor medido. */
+h1,h2,h3{line-height:1.16;letter-spacing:-.022em;font-weight:700}
+h1{font-size:clamp(2rem,5vw,48px);letter-spacing:-.03em}
+h2{font-size:clamp(1.5rem,3.6vw,35px)}
 h3{font-size:1.03rem;font-weight:700;letter-spacing:-.01em}
 p{color:var(--txt-2)}
 
@@ -84,11 +113,11 @@ p{color:var(--txt-2)}
 /* ---------- Botões: retângulo de canto contido, sem brilho ---------- */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:9px;
-  padding:13px 22px;border-radius:var(--r-p);font-weight:700;font-size:.95rem;
+  padding:13px 22px;border-radius:var(--r);font-weight:700;font-size:.95rem;
   font-family:inherit;border:1px solid transparent;cursor:pointer;
   transition:background .15s ease,border-color .15s ease,color .15s ease;
 }
-.btn-p{background:var(--azul);color:#06121f;border-color:var(--azul)}
+.btn-p{background:var(--azul);color:var(--fundo);border-color:var(--azul)}
 .btn-p:hover{background:#5aadff;border-color:#5aadff}
 .btn-s{background:transparent;color:var(--txt);border-color:var(--linha-2)}
 .btn-s:hover{border-color:var(--txt-3);background:var(--sup)}
@@ -105,7 +134,7 @@ p{color:var(--txt-2)}
 header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--linha)}
 .nav{display:flex;align-items:center;justify-content:space-between;height:62px;gap:20px}
 .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.02rem;letter-spacing:-.02em}
-.logo-i{width:28px;height:28px;border-radius:var(--r-s);background:var(--azul);display:grid;place-items:center}
+.logo-i{width:28px;height:28px;border-radius:var(--r);background:var(--azul);display:grid;place-items:center}
 .nav-links{display:flex;gap:26px;font-size:.9rem;color:var(--txt-2);font-weight:600}
 .nav-links a:hover{color:var(--txt)}
 .nav .btn{padding:9px 16px;font-size:.87rem}
@@ -126,20 +155,21 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
 }
 
 /* ---------- Demonstração do bot (janela de chat chapada) ---------- */
-.demo{background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);overflow:hidden}
-.demo-topo{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--linha);background:var(--sup-2)}
-.demo-av{width:30px;height:30px;border-radius:var(--r-s);background:var(--azul);display:grid;place-items:center}
+.demo{background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);overflow:hidden;
+      box-shadow:var(--sombra-flutuante)}
+.demo-topo{display:flex;align-items:center;gap:10px;padding:13px 16px;border-bottom:1px solid var(--linha);background:var(--faixa)}
+.demo-av{width:30px;height:30px;border-radius:var(--r);background:var(--azul);display:grid;place-items:center}
 .demo-nome{font-weight:700;font-size:.88rem;line-height:1.25}
 .demo-sub{font-size:.72rem;color:var(--txt-3)}
 .demo-tag{margin-left:auto;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-3)}
-.chat{padding:18px 16px;display:flex;flex-direction:column;gap:9px;background:var(--fundo-2)}
+.chat{padding:18px 16px;display:flex;flex-direction:column;gap:9px;background:var(--faixa)}
 .msg{max-width:86%;padding:9px 13px;font-size:.855rem;line-height:1.5;border-radius:var(--r)}
 .msg.bot{background:var(--sup);border:1px solid var(--linha);align-self:flex-start;border-top-left-radius:3px;color:var(--txt)}
-.msg.cli{background:var(--azul);color:#06121f;align-self:flex-end;border-bottom-right-radius:3px;font-weight:600}
+.msg.cli{background:var(--azul);color:var(--fundo);align-self:flex-end;border-bottom-right-radius:3px;font-weight:600}
 .msg b{font-weight:700}
 .teclado{display:flex;flex-direction:column;gap:5px;margin-top:10px}
 .teclado span{
-  border:1px solid var(--linha-2);border-radius:var(--r-s);padding:7px 10px;
+  border:1px solid var(--linha-2);border-radius:var(--r);padding:7px 10px;
   font-size:.78rem;font-weight:600;color:var(--azul);text-align:center;
 }
 .demo-pe{padding:10px 16px;border-top:1px solid var(--linha);font-size:.72rem;color:var(--txt-3)}
@@ -171,17 +201,17 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
 .passo:first-child::before{background:var(--azul);border-color:var(--azul)}
 .passo h3{margin-bottom:6px}
 .passo p{font-size:.94rem;max-width:620px}
-.faixa .passos::before,.faixa .passo::before{background-color:var(--fundo-2)}
+.faixa .passos::before,.faixa .passo::before{background-color:var(--faixa)}
 .faixa .passo:first-child::before{background:var(--azul)}
 
 /* ---------- Janela de prova visual ---------- */
 .janela{border:1px solid var(--linha);border-radius:var(--r);overflow:hidden;background:var(--sup)}
-.janela-topo{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--linha);background:var(--sup-2)}
+.janela-topo{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--linha);background:var(--faixa)}
 .pt{width:10px;height:10px;border-radius:50%;background:var(--linha-2)}
 .janela-url{margin-left:10px;font-size:.74rem;color:var(--txt-3)}
 .slot{
   min-height:300px;display:grid;place-items:center;text-align:center;padding:40px 24px;
-  border:1px dashed var(--linha-2);margin:14px;border-radius:var(--r-s);background:var(--fundo-2);
+  border:1px dashed var(--linha-2);margin:14px;border-radius:var(--r);background:var(--fundo);
 }
 .slot p{font-size:.86rem;max-width:340px}
 .slot .rotulo{margin-bottom:8px}
@@ -200,12 +230,13 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
 .pedido-pe{padding:20px 22px}
 .pedido-pe .sub{font-size:.82rem;color:var(--txt-3);margin-top:12px;text-align:center}
 .meios{display:flex;gap:7px;flex-wrap:wrap;padding:0 22px 20px}
-.meios span{border:1px solid var(--linha);border-radius:var(--r-s);padding:4px 10px;font-size:.74rem;color:var(--txt-3);font-weight:600}
+.meios span{border:1px solid var(--linha);border-radius:var(--r);padding:4px 10px;font-size:.74rem;color:var(--txt-3);font-weight:600}
 
 .garantia{background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);padding:26px}
 .garantia h3{margin:14px 0 10px}
 .garantia p{font-size:.89rem;line-height:1.66}
-.garantia .selo{width:36px;height:36px;border-radius:var(--r-s);background:var(--azul-fraco);border:1px solid rgba(59,158,255,.28);display:grid;place-items:center;color:var(--azul)}
+.garantia .selo{width:36px;height:36px;border-radius:var(--r);background:var(--ouro-fundo);
+  border:1px solid rgba(255,195,79,.30);display:grid;place-items:center;color:var(--ouro)}
 
 /* ---------- Depoimentos: sem avatar, sem estrela decorativa ---------- */
 .depos{display:grid;grid-template-columns:repeat(3,1fr);gap:0;align-items:stretch}
