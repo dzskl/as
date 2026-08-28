@@ -72,9 +72,12 @@
   --ouro:#FFC34F;
   --ouro-fundo:rgba(255,195,79,.14);
   --r:8px;                /* raio único: cartão e botão, sem variar */
-  /* Sombra reservada a quem PAIRA sobre a página (o mockup do
-     hero). Cartão de conteúdo é chapado. */
-  --sombra-flutuante:0 4px 16px rgba(0,0,0,.16);
+  /* Duas sombras, dois motivos — sombra aqui é composição, não enfeite:
+     flutuante = o mockup do hero, único elemento que PAIRA sobre a página;
+     cartão    = elevação leve, só para separar do fundo o bloco que
+                 concentra informação (ficha técnica, FAQ). */
+  --sombra-flutuante:0 24px 60px -20px rgba(0,0,0,.65), 0 4px 14px rgba(0,0,0,.30);
+  --sombra-cartao:0 1px 2px rgba(0,0,0,.20), 0 10px 28px -16px rgba(0,0,0,.45);
   --max:1080px;
   --fonte:'Work Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
 }
@@ -141,7 +144,22 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
 @media(max-width:880px){.nav-links{display:none}}
 
 /* ---------- Hero ---------- */
-.hero{padding-top:72px;padding-bottom:88px}
+.hero{padding-top:72px;padding-bottom:88px;position:relative;isolation:isolate}
+/* Profundidade do hero em três camadas, todas dentro da paleta:
+   textura de pontos (branco a 4%), um halo na cor --faixa para levantar o
+   fundo chapado, e um azul fraquíssimo atrás do mockup — que existe para
+   justificar a sombra dele, não como decoração solta. A máscara faz tudo
+   sumir antes da próxima seção, então não há emenda visível. */
+.hero::before{
+  content:"";position:absolute;z-index:-1;inset:0;pointer-events:none;
+  background:
+    radial-gradient(rgba(255,255,255,.04) 1px, transparent 1px) 0 0/24px 24px,
+    radial-gradient(110% 75% at 70% 26%, rgba(57,148,255,.10), transparent 60%),
+    radial-gradient(85% 70% at 18% 6%, var(--faixa), transparent 68%);
+  -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 96%);
+  mask-image:linear-gradient(180deg,#000 0%,#000 52%,transparent 96%);
+}
+.hero > .wrap{position:relative;z-index:1}
 .hero-grid{display:grid;grid-template-columns:1.02fr .98fr;gap:60px;align-items:center}
 .hero h1{margin:18px 0 20px}
 .hero .lead{font-size:1.09rem;max-width:520px}
@@ -175,12 +193,16 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
 .demo-pe{padding:10px 16px;border-top:1px solid var(--linha);font-size:.72rem;color:var(--txt-3)}
 
 /* ---------- Entregáveis: ficha técnica, não grade de cartões ---------- */
-.entrega{border-top:1px solid var(--linha)}
+.entrega{
+  background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);
+  padding:4px 26px;box-shadow:var(--sombra-cartao);
+}
+.entrega .item:last-child{border-bottom:0}
 .item{
   display:grid;grid-template-columns:44px 1fr 160px;gap:26px;align-items:start;
   padding:26px 0;border-bottom:1px solid var(--linha);
 }
-.item-n{font-size:.8rem;font-weight:800;color:var(--txt-3);letter-spacing:.06em;padding-top:3px}
+.item-n{font-size:.8rem;font-weight:800;color:var(--ouro);letter-spacing:.06em;padding-top:3px}
 .item h3{margin-bottom:7px}
 .item p{font-size:.94rem}
 .item-meta{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-3);text-align:right;padding-top:4px}
@@ -198,14 +220,17 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
   content:"";position:absolute;left:-30px;top:7px;width:9px;height:9px;border-radius:50%;
   background:var(--fundo);border:2px solid var(--linha-2);
 }
-.passo:first-child::before{background:var(--azul);border-color:var(--azul)}
+/* Ouro marca onde a coisa começa e o que você leva: o primeiro passo, a
+   numeração dos entregáveis e o selo da garantia. Três usos, um sentido. */
+.passo:first-child::before{background:var(--ouro);border-color:var(--ouro)}
 .passo h3{margin-bottom:6px}
 .passo p{font-size:.94rem;max-width:620px}
 .faixa .passos::before,.faixa .passo::before{background-color:var(--faixa)}
 .faixa .passo:first-child::before{background:var(--azul)}
 
 /* ---------- Janela de prova visual ---------- */
-.janela{border:1px solid var(--linha);border-radius:var(--r);overflow:hidden;background:var(--sup)}
+.janela{border:1px solid var(--linha);border-radius:var(--r);overflow:hidden;background:var(--sup);
+  box-shadow:var(--sombra-cartao)}
 .janela-topo{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--linha);background:var(--faixa)}
 .pt{width:10px;height:10px;border-radius:50%;background:var(--linha-2)}
 .janela-url{margin-left:10px;font-size:.74rem;color:var(--txt-3)}
@@ -219,7 +244,8 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
 /* ---------- Preço: resumo de pedido, como o checkout ---------- */
 .compra{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:start}
 @media(max-width:880px){.compra{grid-template-columns:1fr}}
-.pedido{background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);overflow:hidden}
+.pedido{background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);overflow:hidden;
+  box-shadow:var(--sombra-cartao)}
 .pedido-topo{padding:16px 22px;border-bottom:1px solid var(--linha);font-weight:700;font-size:.92rem}
 .linha-i{display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:13px 22px;border-bottom:1px solid var(--linha);font-size:.9rem}
 .linha-i span:first-child{color:var(--txt-2)}
@@ -261,7 +287,11 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
 }
 
 /* ---------- FAQ: fios, não caixas ---------- */
-.faq{max-width:780px;border-top:1px solid var(--linha)}
+.faq{
+  max-width:780px;background:var(--sup);border:1px solid var(--linha);
+  border-radius:var(--r);padding:0 24px;box-shadow:var(--sombra-cartao);
+}
+.faq details:last-child{border-bottom:0}
 details{border-bottom:1px solid var(--linha)}
 summary{
   padding:20px 0;cursor:pointer;font-weight:700;font-size:.98rem;list-style:none;
@@ -269,6 +299,9 @@ summary{
 }
 summary::-webkit-details-marker{display:none}
 summary::after{content:"";width:11px;height:11px;flex:none;border-right:2px solid var(--txt-3);border-bottom:2px solid var(--txt-3);transform:rotate(45deg) translate(-3px,-3px);transition:transform .2s}
+/* A pergunta aberta sobe um nível: é o item com hierarquia mais alta da
+   lista naquele momento. */
+details[open]{background:var(--faixa);border-radius:var(--r);margin:6px -14px;padding:0 14px}
 details[open] summary{color:var(--azul)}
 details[open] summary::after{border-color:var(--azul);transform:rotate(225deg) translate(-3px,-3px)}
 details p{padding:0 0 22px;font-size:.93rem;max-width:660px}
@@ -287,8 +320,17 @@ footer{border-top:1px solid var(--linha);padding:36px 0;font-size:.84rem;color:v
 /* ---------- Entrada ---------- */
 .reveal{opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease}
 .reveal.on{opacity:1;transform:none}
+/* Escalonamento: as linhas de uma lista entram em cascata curta em vez de
+   todas juntas. Só atraso, sem JavaScript a mais. */
+.item.reveal:nth-child(2){transition-delay:.07s}
+.item.reveal:nth-child(3){transition-delay:.14s}
+.passo.reveal:nth-child(2){transition-delay:.07s}
+.passo.reveal:nth-child(3){transition-delay:.14s}
+.passo.reveal:nth-child(4){transition-delay:.21s}
+.depo.reveal:nth-child(2){transition-delay:.07s}
+.depo.reveal:nth-child(3){transition-delay:.14s}
 @media(prefers-reduced-motion:reduce){
-  .reveal{opacity:1;transform:none;transition:none}
+  .reveal{opacity:1;transform:none;transition:none;transition-delay:0s}
   html{scroll-behavior:auto}
 }
 </style>
