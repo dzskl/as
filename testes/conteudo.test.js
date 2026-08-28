@@ -185,6 +185,40 @@ await teste('a lista de pendências reflete o estado real do arquivo', () => {
   assert.equal(depoimentos.length, 3, 'esperava os 3 depoimentos fictícios');
 });
 
+/* --- Preço: a página anuncia, o servidor cobra ---------------------------
+   São duas fontes por decisão de segurança — o servidor nunca aceita valor
+   vindo do navegador — e é exatamente por isso que elas podem divergir em
+   silêncio. Estes dois testes tornam a divergência barulhenta.
+   Importa de api/_config.js só para LER; nada ali é alterado. */
+const { PRODUTOS, formatarBRL } = await import('../api/_config.js');
+
+await teste('o preço da página é o mesmo que o servidor cobra', () => {
+  /* PRODUTOS direto, e não buscarProduto(): buscarProduto troca o valor
+     quando PRECO_TESTE_CENTAVOS e DIAGNOSTICO estão ligados, e aí o teste
+     mediria a variável de ambiente em vez do preço declarado. */
+  const servidor = PRODUTOS['bot-24h'].valorCentavos;
+  assert.equal(PRODUTO.precoCentavos, servidor,
+    `a página anuncia ${PRODUTO.precoCentavos} centavos e api/_config.js cobra ${servidor} — ` +
+    'mudou um, mude o outro');
+});
+
+await teste('o preço escrito confere com o preço em centavos', () => {
+  /* GERA as formas válidas a partir do número em vez de interpretar a
+     string. Escrever um parser de preço em BRL é onde este teste ficaria
+     frágil ("R$ 1.297,00", "197", "R$197") e passaria a falhar por
+     formatação, não por divergência real. Gerando, a regra é exata. */
+  const centavos = PRODUTO.precoCentavos;
+  const reais = centavos / 100;
+  const formas = new Set();
+  for (const n of [formatarBRL(centavos), reais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })]) {
+    formas.add(`R$ ${n}`);
+    formas.add(`R$ ${n.replace(/,00$/, '')}`);   // centavos zerados podem ser omitidos
+  }
+  assert.ok(formas.has(PRODUTO.preco),
+    `PRODUTO.preco é "${PRODUTO.preco}", que não representa ${centavos} centavos. ` +
+    `Formas aceitas: ${[...formas].map(f => `"${f}"`).join(', ')}`);
+});
+
 /* --- Navegador: a centralização de fato alcança as páginas -------------- */
 console.log('\n  · camada de navegador (preenchimento real)');
 

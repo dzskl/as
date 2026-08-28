@@ -121,8 +121,19 @@ export function pendencias() {
 export const PRODUTO = {
 
   /* ---- Preço ------------------------------------------------------------
-     ⚠️ Precisa bater com valorCentavos em api/_config.js (19700 = R$ 197,00).
-     Ali é a fonte que o servidor cobra; aqui é só o que a página mostra. */
+     Duas fontes, de propósito: quem COBRA é valorCentavos em api/_config.js
+     (o servidor nunca confia em valor vindo do navegador); o que está aqui é
+     só o que a página MOSTRA. Como são duas, elas podem divergir — mudar uma
+     e esquecer a outra faz a página anunciar um preço e o checkout cobrar
+     outro, e ninguém percebe até um cliente reclamar.
+
+     Por isso precoCentavos existe: é o mesmo número, em centavos, e o teste
+     'o preço da página é o mesmo que o servidor cobra' reprova o npm run
+     teste se ele sair de sincronia com api/_config.js.
+
+     Mudou o preço? Mude os três: valorCentavos (api/_config.js),
+     precoCentavos e preco. */
+  precoCentavos: 19700,
   preco: 'R$ 197',
   precoParcelado: '12x de R$ 19,90',
   precoNota: 'Pagamento único. Sem mensalidade, sem taxa por mensagem, sem renovação automática.',
