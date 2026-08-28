@@ -67,20 +67,89 @@ await teste('toda marcação aponta para um campo que existe', () => {
   assert.deepEqual(invalidas, [], invalidas.join('\n     '));
 });
 
+/* Normaliza como o navegador faz ao renderizar: quebra de linha e recuo do
+   código-fonte viram um espaço só. Um depoimento escrito em três linhas no
+   HTML e em uma linha na fonte é o MESMO texto para quem visita — comparar
+   byte a byte acusaria formatação, não divergência de conteúdo. */
+const normalizar = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
+
+const TUDO = { ...EMPRESA, ...DERIVADOS };
+
+/* Resolve "cnpj" e também "0.autor" (depoimento por índice). */
+function fonteDe(ref) {
+  if (/^\d+\./.test(ref)) {
+    const [i, campo] = ref.split('.');
+    return EMPRESA.depoimentos[Number(i)]?.[campo];
+  }
+  return TUDO[ref];
+}
+
 await teste('o HTML mostra hoje exatamente o que a fonte única diz', () => {
   /* Enquanto os dois coincidem, a página renderiza igual com ou sem
-     JavaScript. Divergiram, este teste avisa. */
+     JavaScript. Divergiram, este teste avisa — e é o que impede que, no dia
+     em que os dados reais forem preenchidos em conteudo/empresa.js, um
+     visitante sem JS ou um crawler continue vendo os valores antigos.
+
+     Cobre os QUATRO marcadores, porque um só não bastaria: os depoimentos
+     fictícios vivem em data-depoimento, e og:url/canonical em -content/-href.
+
+     Limitações conhecidas do casamento por regex, verificadas contra o
+     projeto e hoje sem efeito (29 elementos marcados, nenhum se encaixa):
+       · texto para no primeiro "<" interno — nenhum elemento marcado tem
+         tag aninhada dentro (os depoimentos marcam o <span> interno, não o
+         <p> que carrega as aspas curvas);
+       · texto vazio é pulado — nenhum elemento marcado está vazio.
+     Se algum dia um deles passar a valer, o teste 'toda marcação aponta
+     para um campo que existe' continua cobrindo a ligação, mas esta
+     comparação precisará de um parser de verdade. */
   const divergentes = [];
+
+  /* Mostra o trecho EM VOLTA da primeira diferença, não o começo do texto:
+     num depoimento longo que só muda a última frase, imprimir os primeiros
+     45 caracteres exibiria os dois lados idênticos e não ajudaria ninguém. */
+  const recorte = (a, b) => {
+    let i = 0;
+    while (i < a.length && i < b.length && a[i] === b[i]) i++;
+    const de = Math.max(0, i - 12);
+    return (de ? '…' : '') + a.slice(de, de + 45) + (de + 45 < a.length ? '…' : '');
+  };
+
+  const conferir = (pagina, marcador, ref, achado) => {
+    const html = normalizar(achado);
+    const fonte = normalizar(fonteDe(ref));
+    if (html !== fonte) {
+      divergentes.push(
+        `${pagina}: ${marcador}="${ref}" → HTML tem "${recorte(html, fonte)}", ` +
+        `fonte tem "${recorte(fonte, html)}"`);
+    }
+  };
+
   for (const pagina of PAGINAS) {
     const html = ler(pagina);
-    for (const [trecho, campo] of html.matchAll(/data-empresa="([^"]+)"[^>]*>([^<]*)</g)) {
-      void trecho;
+
+    /* --- Marcadores de TEXTO: o conteúdo do elemento ------------------- */
+    for (const marcador of ['data-empresa', 'data-depoimento']) {
+      const re = new RegExp(`<\\w+[^>]*\\s${marcador}="([^"]+)"[^>]*>([^<]*)<`, 'g');
+      for (const [, ref, texto] of html.matchAll(re)) {
+        if (!normalizar(texto)) continue;   // limitação documentada acima
+        conferir(pagina, marcador, ref, texto);
+      }
     }
-    for (const m of html.matchAll(/data-empresa="([^"]+)"[^>]*>([^<]*)</g)) {
-      const [, campo, texto] = m;
-      const esperado = String({ ...EMPRESA, ...DERIVADOS }[campo] ?? '');
-      if (texto.trim() && texto.trim() !== esperado.trim()) {
-        divergentes.push(`${pagina}: ${campo} → HTML tem "${texto.trim().slice(0, 40)}", fonte tem "${esperado.slice(0, 40)}"`);
+
+    /* --- Marcadores de ATRIBUTO: href= e content= da mesma tag ---------
+       O espaço antes do nome do atributo é obrigatório no casamento: sem
+       ele, `href="` acharia primeiro o próprio `data-empresa-href="` e o
+       teste compararia o marcador consigo mesmo, passando sempre. */
+    for (const [marcador, alvo] of [['data-empresa-href', 'href'], ['data-empresa-content', 'content']]) {
+      const re = new RegExp(`<\\w+[^>]*\\s${marcador}="([^"]+)"[^>]*>`, 'g');
+      for (const tag of html.matchAll(re)) {
+        const ref = tag[1];
+        const achado = new RegExp(`\\s${alvo}="([^"]*)"`).exec(tag[0]);
+        if (!achado) {
+          divergentes.push(`${pagina}: ${marcador}="${ref}" sem atributo ${alvo}= para preencher`);
+          continue;
+        }
+        conferir(pagina, marcador, ref, achado[1]);
       }
     }
   }
