@@ -67,10 +67,7 @@
   --txt-2:rgba(255,255,255,.70);   /* corpo */
   --txt-3:rgba(255,255,255,.55);   /* rótulo e meta */
   --azul:#3994FF;                  /* acento principal (CTA) */
-  /* Acento secundário RARO: só o selo da garantia. Fundo a 14%,
-     nunca sólido — é como o badge "premium" do site de referência. */
-  --ouro:#FFC34F;
-  --ouro-fundo:rgba(255,195,79,.14);
+  --azul-fraco:rgba(57,148,255,.12);
   --r:8px;                /* raio único: cartão e botão, sem variar */
   /* Duas sombras, dois motivos — sombra aqui é composição, não enfeite:
      flutuante = o mockup do hero, único elemento que PAIRA sobre a página;
@@ -202,7 +199,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
   display:grid;grid-template-columns:44px 1fr 160px;gap:26px;align-items:start;
   padding:26px 0;border-bottom:1px solid var(--linha);
 }
-.item-n{font-size:.8rem;font-weight:800;color:var(--ouro);letter-spacing:.06em;padding-top:3px}
+.item-n{font-size:.8rem;font-weight:800;color:var(--txt-3);letter-spacing:.06em;padding-top:3px}
 .item h3{margin-bottom:7px}
 .item p{font-size:.94rem}
 .item-meta{font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-3);text-align:right;padding-top:4px}
@@ -220,9 +217,7 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
   content:"";position:absolute;left:-30px;top:7px;width:9px;height:9px;border-radius:50%;
   background:var(--fundo);border:2px solid var(--linha-2);
 }
-/* Ouro marca onde a coisa começa e o que você leva: o primeiro passo, a
-   numeração dos entregáveis e o selo da garantia. Três usos, um sentido. */
-.passo:first-child::before{background:var(--ouro);border-color:var(--ouro)}
+.passo:first-child::before{background:var(--azul);border-color:var(--azul)}
 .passo h3{margin-bottom:6px}
 .passo p{font-size:.94rem;max-width:620px}
 .faixa .passos::before,.faixa .passo::before{background-color:var(--faixa)}
@@ -261,8 +256,8 @@ header{position:sticky;top:0;z-index:50;background:rgba(11,14,19,.92);backdrop-f
 .garantia{background:var(--sup);border:1px solid var(--linha);border-radius:var(--r);padding:26px}
 .garantia h3{margin:14px 0 10px}
 .garantia p{font-size:.89rem;line-height:1.66}
-.garantia .selo{width:36px;height:36px;border-radius:var(--r);background:var(--ouro-fundo);
-  border:1px solid rgba(255,195,79,.30);display:grid;place-items:center;color:var(--ouro)}
+.garantia .selo{width:36px;height:36px;border-radius:var(--r);background:var(--azul-fraco);
+  border:1px solid rgba(57,148,255,.28);display:grid;place-items:center;color:var(--azul)}
 
 /* ---------- Depoimentos: sem avatar, sem estrela decorativa ---------- */
 .depos{display:grid;grid-template-columns:repeat(3,1fr);gap:0;align-items:stretch}
